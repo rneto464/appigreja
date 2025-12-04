@@ -126,6 +126,19 @@ def get_db():
         except Exception as e:
             print(f"Erro ao criar diretório do banco: {e}")
     
+    # Se o banco não existe, criar e inicializar
+    if not os.path.exists(DATABASE):
+        try:
+            with app.app_context():
+                init_db()
+                popular_templates_iniciais()
+                popular_dias_missa_iniciais()
+                print(f"Banco de dados criado em: {DATABASE}")
+        except Exception as e:
+            print(f"Erro ao criar banco de dados: {e}")
+            import traceback
+            traceback.print_exc()
+    
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
