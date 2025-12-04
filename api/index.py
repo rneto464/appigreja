@@ -25,8 +25,7 @@ except Exception as e:
     # Continuar mesmo se houver erro - o banco será criado na primeira requisição
 
 # Exportar a aplicação para a Vercel
-# A Vercel espera uma variável chamada 'handler' ou 'application'
-# Para Flask, podemos exportar diretamente o app
+# A Vercel detecta automaticamente o app Flask quando usado com @vercel/python
+# Exportamos o app diretamente
 handler = app
-application = app  # Alternativa para compatibilidade
 
