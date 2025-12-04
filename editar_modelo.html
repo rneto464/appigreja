@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Modelo de Escala</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  
+</head>
+<body>
+    <div class="container">
+        <h1>Editar Modelo: {{ template.tipo_escala }}</h1>
+        <p>Selecione as pessoas que estarão aptas a participar neste tipo de escala. O sistema escolherá aleatoriamente a partir desta lista ao gerar as escalas do mês.</p>
+        
+        <form action="{{ url_for('atualizar_modelo', tipo_escala=template.tipo_escala) }}" method="post" class="edit-form">
+            
+            {% set cerimoniarios_selecionados = template.cerimoniarios_template.split(', ') %}
+            <label for="cerimoniarios">Candidatos a Cerimoniários:</label>
+            <select name="cerimoniarios" multiple>
+                {% for nome in todos_os_nomes %}
+                    <option value="{{ nome }}" {% if nome in cerimoniarios_selecionados %}selected{% endif %}>
+                        {{ nome }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            {% set veteranos_selecionados = template.veteranos_template.split(', ') %}
+            <label for="veteranos">Candidatos a Veteranos:</label>
+            <select name="veteranos" multiple>
+                {% for nome in todos_os_nomes %}
+                    <option value="{{ nome }}" {% if nome in veteranos_selecionados %}selected{% endif %}>
+                        {{ nome }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            {% set criancas_selecionadas = template.criancas_template.split(', ') %}
+            <label for="criancas">Candidatos a Crianças:</label>
+            <select name="criancas" multiple>
+                {% for nome in todos_os_nomes %}
+                    <option value="{{ nome }}" {% if nome in criancas_selecionadas %}selected{% endif %}>
+                        {{ nome }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            {% if template.tipo_escala.startswith('Domingo') %}
+                <hr>
+                <h4>Funções Especiais (Domingo)</h4>
+
+                {% set turibulo_selecionados = template.turibulo_template.split(', ') %}
+                <label for="turibulo">Candidatos a Turíbulo:</label>
+                <select name="turibulo" multiple>
+                     {% for nome in todos_os_nomes %}
+                        <option value="{{ nome }}" {% if nome in turibulo_selecionados %}selected{% endif %}>
+                            {{ nome }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                {% set naveta_selecionados = template.naveta_template.split(', ') %}
+                <label for="naveta">Candidatos a Naveta:</label>
+                <select name="naveta" multiple>
+                     {% for nome in todos_os_nomes %}
+                        <option value="{{ nome }}" {% if nome in naveta_selecionados %}selected{% endif %}>
+                            {{ nome }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                {% set tochas_selecionados = template.tochas_template.split(', ') %}
+                <label for="tochas">Candidatos a Tochas:</label>
+                <select name="tochas" multiple>
+                     {% for nome in todos_os_nomes %}
+                        <option value="{{ nome }}" {% if nome in tochas_selecionados %}selected{% endif %}>
+                            {{ nome }}
+                        </option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+
+            <button type="submit" style="margin-top: 20px;">Salvar Modelo</button>
+            <a href="{{ url_for('gerenciar_modelos') }}" class="button-link" style="text-align: center; display: block; margin-top: 10px;">Voltar sem Salvar</a>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Ativa o Select2 em todas as caixas de seleção múltipla da página
+            $('select[multiple]').select2({
+                placeholder: 'Clique para selecionar ou pesquisar nomes',
+                width: '100%'
+            });
+        });
+    </script>
+</body>
+</html>

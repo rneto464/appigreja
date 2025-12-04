@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Escalas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Gerador de Escalas</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}<div class="flash-messages">{% for category, message in messages %}<div class="alert alert-{{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+        {% endwith %}
+
+        {% if not is_view_only %}
+        <div class="forms-container">
+            <form action="{{ url_for('gerar_escala_web') }}" method="post" class="form-section">
+                <h2>Gerar Nova Escala</h2>
+                <label for="mes_gerar">Mês:</label>
+                <input type="number" id="mes_gerar" name="mes" min="1" max="12" value="{{ mes }}" required>
+                <label for="ano_gerar">Ano:</label>
+                <input type="number" id="ano_gerar" name="ano" min="2020" max="2050" value="{{ ano }}" required>
+                <button type="submit" style="margin-top: 10px;">Gerar e Salvar Escala</button>
+            </form>
+            <form action="{{ url_for('ver_escala_web') }}" method="post" class="form-section">
+                <h2>Ver Escala Existente</h2>
+                <label for="mes_ver">Mês:</label>
+                <input type="number" id="mes_ver" name="mes" min="1" max="12" value="{{ mes }}" required>
+                <label for="ano_ver">Ano:</label>
+                <input type="number" id="ano_ver" name="ano" min="2020" max="2050" value="{{ ano }}" required>
+                <button type="submit" style="margin-top: 10px;">Ver Escala</button>
+            </form>
+        </div>
+        <hr>
+        {% endif %}
+
+        <div id="calendar-container">
+            <div class="calendar-header">
+                <div class="calendar-nav"><button id="prev-month-btn">&lt; Mês Anterior</button></div>
+                <h2 id="current-month-year"></h2>
+                <div class="calendar-nav"><button id="next-month-btn">Próximo Mês &gt;</button></div>
+            </div>
+            <div class="calendar-grid"></div>
+        </div>
+        
+        {% if not is_view_only %}
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #4b5563; padding-bottom: 10px; margin-top: 40px;">
+                <h2 style="border: none; margin: 0; padding: 0; text-align: left;">Visualização em Lista:</h2>
+                <a href="{{ url_for('exportar_mes', ano=ano, mes=mes) }}" class="button-link" style="width: auto; background-color: #16a34a; margin: 0;">Exportar Mês (Excel)</a>
+            </div>
+        {% else %}
+            <h2>Visualização em Lista:</h2>
+        {% endif %}
+        
+        {% if escalas %}
+            <div class="escala-list" style="margin-top: 20px;">
+            {% for escala in escalas %}
+                <div class="escala-card">
+                    <h3>{{ escala.tipo_escala }} ({{ escala.data }}):</h3>
+                    <div class="role-section"><strong>Cerimoniários:</strong><div class="name-tags">{% for nome in escala.cerimoniarios.split(', ') if nome %}<span class="name-tag">{{ nome }}</span>{% endfor %}</div></div>
+                    <div class="role-section"><strong>Veteranos:</strong><div class="name-tags">{% for nome in escala.veteranos.split(', ') if nome %}<span class="name-tag">{{ nome }}</span>{% endfor %}</div></div>
+                    <div class="role-section"><strong>Crianças:</strong><div class="name-tags">{% for nome in escala.criancas.split(', ') if nome %}<span class="name-tag">{{ nome }}</span>{% endfor %}</div></div>
+                    {% if escala.turibulo or escala.naveta or escala.tochas %}<hr style="border-color: #4b5563; margin: 15px 0;">{% endif %}
+                    {% if escala.turibulo %}<div class="role-section"><strong>Turíbulo:</strong><div class="name-tags">{% for nome in escala.turibulo.split(', ') if nome %}<span class="name-tag">{{ nome }}</span>{% endfor %}</div></div>{% endif %}
+                    {% if escala.naveta %}<div class="role-section"><strong>Naveta:</strong><div class="name-tags">{% for nome in escala.naveta.split(', ') if nome %}<span class="name-tag">{{ nome }}</span>{% endfor %}</div></div>{% endif %}
+                    {% if escala.tochas %}<div class="role-section"><strong>Tochas:</strong><div class="name-tags">{% for nome in escala.tochas.split(', ') if nome %}<span class="name-tag">{{ nome }}</span>{% endfor %}</div></div>{% endif %}
+                    {% if not is_view_only %}
+                    <div class="card-actions">
+                        <a href="{{ url_for('editar_escala', escala_id=escala.id) }}" class="edit-button">Editar</a>
+                        <form action="{{ url_for('remover_escala', escala_id=escala.id) }}" method="post" onsubmit="return confirm('Tem a certeza?');">
+                            <button type="submit" class="button-danger">Remover</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <p style="text-align: center; margin-top: 20px;">Nenhuma escala disponível para este mês. {% if not is_view_only %}Gere a escala acima.{% endif %}</p>
+        {% endif %}
+
+        {% if not is_view_only %}
+        <hr>
+        <div style="text-align: center; margin-top: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;">
+            <a href="{{ url_for('gerenciar_pessoas') }}" class="button-link">Gerenciar Pessoas</a>
+            <a href="{{ url_for('gerenciar_modelos') }}" class="button-link">Gerenciar Modelos</a>
+        </div>
+        <hr>
+        <div class="form-section">
+            <h2 style="color: #ef4444;">Manutenção</h2>
+            <form action="{{ url_for('reiniciar_importar_web') }}" method="post" onsubmit="return confirm('TEM A CERTEZA? Todos os dados serão perdidos!');">
+                <button type="submit" class="button-danger">Reiniciar Base de Dados</button>
+            </form>
+            <hr style="margin: 20px 0;">
+            
+        <form action="{{ url_for('limpar_mes_web') }}" method="post" onsubmit="return confirm('Tem a certeza que deseja apagar TODAS as escalas de {{ '%02d'|format(mes) }}/{{ ano }}? Esta ação não pode ser desfeita!');"></form>
+            <input type="hidden" name="mes" value="{{ mes }}">
+            <input type="hidden" name="ano" value="{{ ano }}">
+            <button type="submit" class="button-danger">Apagar Escalas do Mês</button>
+        </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <div id="modal-overlay" class="modal-overlay">
+        <div id="modal-content" class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title"></h2>
+                <span id="modal-close-btn" class="modal-close-btn">&times;</span>
+            </div>
+            <div id="modal-scales-container"></div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentMonth = Number("{{ mes }}");
+            const currentYear = Number("{{ ano }}");
+            const eventsData = JSON.parse('{{ calendar_events | tojson | safe }}');
+            const isViewOnly = "{{ is_view_only }}" === "True";
+
+            const calendarGrid = document.querySelector('.calendar-grid');
+            const monthYearHeader = document.getElementById('current-month-year');
+            const modalOverlay = document.getElementById('modal-overlay');
+            const modalTitle = document.getElementById('modal-title');
+            const modalScalesContainer = document.getElementById('modal-scales-container');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+
+            function showDayDetailsModal(day, month, year, eventsOnDay) {
+                const date = new Date(year, month - 1, day);
+                modalTitle.textContent = `Escalas para ${date.toLocaleDateString('pt-br', {dateStyle: 'full'})}`;
+                modalScalesContainer.innerHTML = '';
+                if (eventsOnDay.length > 0) {
+                    eventsOnDay.forEach(event => {
+                        let cardHTML = `<div class="escala-card" style="margin-bottom: 20px;"><h3>${event.title}</h3>`;
+                        const details = event.extendedProps.description.replace(/<b>/g, '<strong style="color: #93c5fd;">').replace(/<\/b>/g, '</strong>');
+                        cardHTML += `<p>${details}</p>`;
+                        if (!isViewOnly) {
+                            cardHTML += `<div class="card-actions" style="margin-top: 15px;"><a href="/editar_escala/${event.id}" class="edit-button">Editar Escala</a></div>`
+                        }
+                        cardHTML += `</div>`;
+                        modalScalesContainer.innerHTML += cardHTML;
+                    });
+                } else {
+                    modalScalesContainer.innerHTML = '<p>Nenhuma escala para este dia.</p>';
+                    if (!isViewOnly) {
+                        modalScalesContainer.innerHTML += `<a href="/adicionar_escala/${year}/${month}/${day}" class="button-link" style="margin-top: 20px;">Adicionar Nova Escala</a>`;
+                    }
+                }
+                modalOverlay.style.display = 'flex';
+            }
+
+            function closeDayDetailsModal() {
+                modalOverlay.style.display = 'none';
+            }
+
+            modalCloseBtn.addEventListener('click', closeDayDetailsModal);
+            modalOverlay.addEventListener('click', function(e) {
+                if (e.target === modalOverlay) {
+                    closeDayDetailsModal();
+                }
+            });
+
+            function renderCalendar(month, year) {
+                calendarGrid.innerHTML = `<div class="calendar-day-header">Dom</div><div class="calendar-day-header">Seg</div><div class="calendar-day-header">Ter</div><div class="calendar-day-header">Qua</div><div class="calendar-day-header">Qui</div><div class="calendar-day-header">Sex</div><div class="calendar-day-header">Sáb</div>`;
+                const date = new Date(year, month - 1, 1);
+                monthYearHeader.textContent = date.toLocaleString('pt-br', { month: 'long', year: 'numeric' });
+                const firstDayOfWeek = date.getDay();
+                const daysInMonth = new Date(year, month, 0).getDate();
+
+                for (let i = 0; i < firstDayOfWeek; i++) { calendarGrid.appendChild(Object.assign(document.createElement('div'), { className: 'calendar-day other-month' })); }
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayCell = document.createElement('div');
+                    dayCell.className = 'calendar-day';
+                    dayCell.innerHTML = `<div class="day-number">${day}</div>`;
+                    
+                    const formattedDay = String(day).padStart(2, '0');
+                    const formattedMonth = String(month).padStart(2, '0');
+                    const currentDateString = `${formattedDay}/${formattedMonth}/${year}`;
+
+                    const eventsOnDay = eventsData.filter(e => e.start === currentDateString);
+
+                    if (isViewOnly) {
+                        dayCell.addEventListener('click', () => {
+                            showDayDetailsModal(day, month, year, eventsOnDay);
+                        });
+                    } else {
+                        dayCell.addEventListener('click', (e) => {
+                            if (e.target.classList.contains('event')) return;
+                            window.location.href = `/adicionar_escala/${year}/${month}/${day}`;
+                        });
+                    }
+
+                    eventsOnDay.forEach(event => {
+                        const eventEl = document.createElement('div');
+                        eventEl.className = 'event';
+                        eventEl.textContent = event.title;
+                        eventEl.title = event.extendedProps.description.replace(/<br>/g, '\n');
+                        if (!isViewOnly) {
+                            eventEl.onclick = (e) => {
+                                e.stopPropagation();
+                                window.location.href = `/editar_escala/${event.id}`;
+                            };
+                        }
+                        dayCell.appendChild(eventEl);
+                    });
+                    calendarGrid.appendChild(dayCell);
+                }
+            }
+
+            renderCalendar(currentMonth, currentYear);
+
+            document.getElementById('prev-month-btn').addEventListener('click', () => {
+                let newMonth = currentMonth - 1, newYear = currentYear;
+                if (newMonth < 1) { newMonth = 12; newYear--; }
+                const baseUrl = isViewOnly ? '/visualizar' : '/ver_escala';
+                window.location.href = `${baseUrl}/${newMonth}/${newYear}`;
+            });
+            document.getElementById('next-month-btn').addEventListener('click', () => {
+                let newMonth = currentMonth + 1, newYear = currentYear;
+                if (newMonth > 12) { newMonth = 1; newYear++; }
+                const baseUrl = isViewOnly ? '/visualizar' : '/ver_escala';
+                window.location.href = `${baseUrl}/${newMonth}/${newYear}`;
+            });
+        });
+    </script>
+</body>
+</html>
