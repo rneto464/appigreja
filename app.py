@@ -10,7 +10,16 @@ import json
 # xlsxwriter é usado como engine do pandas, não precisa importar diretamente
 
 # --- Configurações do Flask ---
-app = Flask(__name__)
+# Configurar caminhos absolutos para static e templates
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, 'static')
+TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
+
+app = Flask(__name__, 
+            static_folder=STATIC_DIR,
+            static_url_path='/static',
+            template_folder=TEMPLATES_DIR)
 # Chave secreta - em produção, usar variável de ambiente
 app.secret_key = os.environ.get('SECRET_KEY', 'sua_chave_secreta_aqui_altere_em_producao')
 # Usa caminhos relativos ao diretório do projeto
