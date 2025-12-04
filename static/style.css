@@ -335,10 +335,25 @@ button:hover, .button-link:hover, .edit-button:hover {
   gap: var(--spacing-xs);
   box-sizing: border-box;
 }
-.day-number { font-weight: normal; color: #9ca3af; }
-.calendar-day.other-month { background-color: #1f2937; opacity: 0.7; cursor: default; }
-.calendar-day:not(.other-month) { cursor: pointer; }
-.calendar-day:not(.other-month):hover { background-color: #4b5563; border-color: #60a5fa; }
+.day-number { 
+  font-weight: normal; 
+  color: var(--text-muted); 
+}
+
+.calendar-day.other-month { 
+  background-color: var(--bg-secondary); 
+  opacity: 0.7; 
+  cursor: default; 
+}
+
+.calendar-day:not(.other-month) { 
+  cursor: pointer; 
+}
+
+.calendar-day:not(.other-month):hover { 
+  background-color: var(--bg-hover); 
+  border-color: #60a5fa; 
+}
 .event { 
     background-color: #2563eb; 
     color: #ffffff !important; 
