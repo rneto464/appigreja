@@ -21,8 +21,6 @@ app = Flask(__name__,
             template_folder=TEMPLATES_DIR)
 # Chave secreta - em produção, usar variável de ambiente
 app.secret_key = os.environ.get('SECRET_KEY', 'sua_chave_secreta_aqui_altere_em_producao')
-# Usa caminhos relativos ao diretório do projeto
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Na Vercel, usar /tmp para o banco (único diretório gravável)
 # Permitir override via variável de ambiente
 DATABASE = os.environ.get('DATABASE_PATH', os.path.join(BASE_DIR, 'dados_escala.db'))
