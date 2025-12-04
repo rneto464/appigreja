@@ -2675,95 +2675,138 @@ button:hover, .button-link:hover, .edit-button:hover { background-color: #3b82f6
 
   /* Formulários de Edição */
   .edit-form-container {
-    padding: 10px;
+    padding: 5px;
+  }
+
+  .brasao-container {
+    margin-bottom: 10px;
   }
 
   .edit-form-header {
     flex-direction: column;
-    gap: 15px;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
   }
 
   .edit-form-title {
-    font-size: 1.6em;
+    font-size: 1.4em;
     text-align: center;
+    margin-bottom: 4px;
   }
 
   .edit-form-subtitle {
-    font-size: 0.95em;
+    font-size: 0.85em;
     text-align: center;
+    margin: 0;
   }
 
   .btn-cancel-header {
     width: 100%;
     justify-content: center;
+    padding: 8px 16px;
+    font-size: 0.9em;
   }
 
   .edit-form-card {
-    padding: 20px;
+    padding: 15px;
+    margin-bottom: 10px;
+  }
+
+  .edit-form-content {
+    gap: 20px;
   }
 
   .form-field-group {
-    gap: 10px;
+    gap: 8px;
+    margin-bottom: 15px;
+  }
+
+  .form-field-group:first-child {
+    margin-bottom: 10px;
   }
 
   .field-label {
-    font-size: 1em;
+    font-size: 0.95em;
+    margin-bottom: 4px;
+  }
+
+  .field-icon {
+    font-size: 1.1em;
   }
 
   .form-input,
   .form-select {
-    padding: 12px 40px 12px 12px;
+    padding: 10px 40px 10px 12px;
     font-size: 0.95em;
+  }
+
+  .date-display {
+    font-size: 0.9em;
+    padding: 8px;
   }
 
   .team-categories-list {
-    padding: 15px;
+    padding: 12px;
+    margin-bottom: 15px;
   }
 
   .team-category-item {
-    padding: 12px 0;
+    padding: 10px 0;
   }
 
   .team-category-label {
-    font-size: 0.95em;
+    font-size: 0.9em;
+    margin-bottom: 6px;
   }
 
   .team-category-members .member-tag {
-    padding: 6px 12px;
-    font-size: 0.85em;
+    padding: 5px 10px;
+    font-size: 0.8em;
   }
 
   .team-members-list {
-    padding: 15px;
+    padding: 12px;
     gap: 8px;
   }
 
   .team-member-card {
-    padding: 10px 12px;
+    padding: 8px 10px;
   }
 
   .member-avatar {
-    width: 35px;
-    height: 35px;
-    font-size: 1em;
-  }
-
-  .member-name {
+    width: 30px;
+    height: 30px;
     font-size: 0.9em;
   }
 
+  .member-name {
+    font-size: 0.85em;
+  }
+
   .team-selection-section {
-    padding: 15px;
-    gap: 15px;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .team-selection-section .form-group {
+    gap: 6px;
+  }
+
+  .team-selection-section label {
+    font-size: 0.9em;
   }
 
   .edit-form-actions {
     flex-direction: column;
-    gap: 12px;
-    margin-top: 20px;
-    padding-top: 20px;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 15px;
+    position: sticky;
+    bottom: 0;
+    background: #1f2937;
+    z-index: 10;
+    border-top: 2px solid #374151;
   }
 
   .btn-save,
@@ -2778,9 +2821,15 @@ button:hover, .button-link:hover, .edit-button:hover { background-color: #3b82f6
   .btn-cancel-form,
   .btn-delete {
     width: 100%;
-    padding: 12px 20px;
+    padding: 12px 16px;
     font-size: 0.95em;
     margin: 0;
+  }
+
+  .form-tip {
+    padding: 10px;
+    font-size: 0.85em;
+    margin-top: 10px;
   }
 
   .form-tip {

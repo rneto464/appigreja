@@ -313,6 +313,37 @@
                 placeholder: 'Selecionar membro...',
                 width: '100%'
             });
+
+            // Garantir que os botões fiquem visíveis quando o teclado aparecer
+            const form = document.querySelector('.edit-form-content');
+            const actions = document.querySelector('.edit-form-actions');
+            
+            if (form && actions) {
+                // Scroll automático para os botões quando um campo é focado
+                const inputs = form.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    input.addEventListener('focus', function() {
+                        setTimeout(() => {
+                            actions.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }, 300); // Delay para o teclado aparecer
+                    });
+                });
+
+                // Prevenir scroll do body quando o teclado está aberto
+                let isKeyboardOpen = false;
+                const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                
+                window.addEventListener('resize', function() {
+                    const currentHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                    if (currentHeight < viewportHeight * 0.75) {
+                        isKeyboardOpen = true;
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        isKeyboardOpen = false;
+                        document.body.style.overflow = 'auto';
+                    }
+                });
+            }
         });
     </script>
 </body>
