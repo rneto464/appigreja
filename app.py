@@ -1712,6 +1712,5 @@ if __name__ == '__main__':
 else:
     # Em ambiente serverless (Vercel), inicializar na primeira importação
     # A inicialização será feita automaticamente quando get_db() for chamado
-    # Não precisamos inicializar aqui pois pode causar problemas com MySQL
+    # Não precisamos inicializar aqui pois pode causar problemas com PostgreSQL
     pass
-            print("O banco será inicializado na primeira requisição.")
