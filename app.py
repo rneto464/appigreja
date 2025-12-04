@@ -1663,6 +1663,53 @@ def init_app():
         importar_dados_iniciais_do_excel()
         popular_templates_iniciais()
         popular_dias_missa_iniciais()
+        
+        # Cadastrar pessoas automaticamente se o banco estiver vazio
+        db = get_db()
+        cursor = db.cursor()
+        count_pessoas = cursor.execute("SELECT COUNT(*) FROM pessoas").fetchone()[0]
+        db.close()
+        
+        if count_pessoas == 0:
+            print("Banco vazio detectado. Cadastrando pessoas automaticamente...")
+            # Chamar a função de cadastro de pessoas
+            try:
+                pessoas_para_cadastrar = {
+                    'cerimoniario': [
+                        "Alejandro", "João Pedro", "Pedro Reis", "Adriano",
+                        "Lucas", "André", "Pedro Barroso"
+                    ],
+                    'veterano': [
+                        "Ana Julia", "Vitória", "Sofia Reis", "Armando", "Karla",
+                        "Mateus", "João Raffael", "Pedro Cutrim", "Gabriel Mendes"
+                    ],
+                    'mirins': [
+                        "João Gabriel", "Luiza", "Miguel", "Rafael", "Antony",
+                        "Maria Celida", "Cauan", "Theo", "Alexia", "Davi Barbalho",
+                        "Helisa", "Thiago Alex", "Gabriel Carvalho", "Mariana Jansen",
+                        "Bernardo"
+                    ]
+                }
+                
+                db = get_db()
+                cursor = db.cursor()
+                total = 0
+                for grupo, nomes in pessoas_para_cadastrar.items():
+                    for nome in nomes:
+                        nome_limpo = nome.strip()
+                        try:
+                            cursor.execute(
+                                "INSERT INTO pessoas (nome, grupo, funcoes) VALUES (?, ?, ?)",
+                                (nome_limpo, grupo, '')
+                            )
+                            total += 1
+                        except sqlite3.IntegrityError:
+                            pass  # Já existe
+                db.commit()
+                db.close()
+                print(f"✅ {total} pessoas cadastradas automaticamente!")
+            except Exception as e:
+                print(f"⚠️ Erro ao cadastrar pessoas automaticamente: {e}")
 
 # Executar inicialização apenas se não estiver em ambiente serverless (Vercel)
 # Na Vercel, a inicialização será feita na primeira requisição
