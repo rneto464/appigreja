@@ -557,11 +557,9 @@ def gerar_escala_para_mes(mes, ano):
                 # Se for domingo, adicionar também ao conjunto de domingo para prevenir repetição entre manhã/noite
                 if is_domingo:
                     escalados_domingo.update(todos_escalados_esta_missa)
-                # Fechar cursor após cada INSERT para evitar vazamento de recursos
-                cursor = db.execute('''INSERT INTO escalas (data, tipo_escala, bata_cor, cerimoniarios, veteranos, mirins, turibulo, naveta, tochas)
+                db.execute('''INSERT INTO escalas (data, tipo_escala, bata_cor, cerimoniarios, veteranos, mirins, turibulo, naveta, tochas)
                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                               (data_atual.strftime('%d/%m/%Y'), tipo_escala, 'Branca', juntar_nomes(cerimoniarios), juntar_nomes(veteranos), juntar_nomes(mirins), juntar_nomes(turibulo), juntar_nomes(naveta), juntar_nomes(tochas)))
-                cursor.close()  # Fechar cursor imediatamente após uso
                 escalas_geradas += 1
 
             data_atual += timedelta(days=1)
@@ -1241,10 +1239,14 @@ def remover_escala_web(escala_id):
 def gerenciar_modelos_web():
     conn = get_db()
     try:
-        templates = conn.execute("SELECT * FROM escala_templates ORDER BY tipo_escala").fetchall()
+        cursor = conn.execute("SELECT * FROM escala_templates ORDER BY tipo_escala")
+        templates = cursor.fetchall()
+        cursor.close()
         return render_template('gerenciar_modelos.html', templates=templates)
     except Exception as e:
         flash(f'Erro ao carregar modelos: {str(e)}', 'error')
+        import traceback
+        traceback.print_exc()
         return render_template('gerenciar_modelos.html', templates=[])
     finally:
         conn.close()
@@ -1253,19 +1255,33 @@ def gerenciar_modelos_web():
 def editar_modelo_web(tipo_escala):
     conn = get_db()
     try:
-        template = conn.execute('SELECT * FROM escala_templates WHERE tipo_escala = ?', (tipo_escala,)).fetchone()
+        # Buscar template
+        cursor = conn.execute('SELECT * FROM escala_templates WHERE tipo_escala = ?', (tipo_escala,))
+        template = cursor.fetchone()
+        cursor.close()
+        
         if template is None:
             flash(f'Modelo "{tipo_escala}" não encontrado.', 'error')
             return redirect(url_for('gerenciar_modelos_web'))
         
         # Filtrar pessoas por grupo para cada campo
-        cerimoniarios = [row['nome'] for row in conn.execute("SELECT nome FROM pessoas WHERE grupo = ? ORDER BY nome", (GRUPO_CERIMONIARIO,)).fetchall()]
-        veteranos = [row['nome'] for row in conn.execute("SELECT nome FROM pessoas WHERE grupo = ? ORDER BY nome", (GRUPO_VETERANO,)).fetchall()]
-        mirins = [row['nome'] for row in conn.execute("SELECT nome FROM pessoas WHERE grupo = ? ORDER BY nome", (GRUPO_MIRINS,)).fetchall()]
+        cursor = conn.execute("SELECT nome FROM pessoas WHERE grupo = ? ORDER BY nome", (GRUPO_CERIMONIARIO,))
+        cerimoniarios = [row['nome'] for row in cursor.fetchall()]
+        cursor.close()
+        
+        cursor = conn.execute("SELECT nome FROM pessoas WHERE grupo = ? ORDER BY nome", (GRUPO_VETERANO,))
+        veteranos = [row['nome'] for row in cursor.fetchall()]
+        cursor.close()
+        
+        cursor = conn.execute("SELECT nome FROM pessoas WHERE grupo = ? ORDER BY nome", (GRUPO_MIRINS,))
+        mirins = [row['nome'] for row in cursor.fetchall()]
+        cursor.close()
         
         # Para funções especiais, permitir cerimoniários e veteranos
         # Buscar TODAS as pessoas para disponibilizar em Turíbulo, Naveta e Tochas
-        todas_as_pessoas = [p['nome'] for p in conn.execute("SELECT nome FROM pessoas ORDER BY nome").fetchall()]
+        cursor = conn.execute("SELECT nome FROM pessoas ORDER BY nome")
+        todas_as_pessoas = [p['nome'] for p in cursor.fetchall()]
+        cursor.close()
         candidatos_funcoes = sorted(todas_as_pessoas)
         
         return render_template('editar_modelo.html', 
@@ -1276,6 +1292,8 @@ def editar_modelo_web(tipo_escala):
                              candidatos_funcoes=candidatos_funcoes)
     except Exception as e:
         flash(f'Erro ao carregar modelo: {str(e)}', 'error')
+        import traceback
+        traceback.print_exc()
         return redirect(url_for('gerenciar_modelos_web'))
     finally:
         conn.close()
