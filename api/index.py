@@ -17,7 +17,9 @@ IS_VERCEL = bool(os.environ.get('VERCEL') or os.environ.get('VERCEL_ENV'))
 
 # Na Vercel, se não houver Supabase configurado, usar /tmp para SQLite
 # IMPORTANTE: Definir ANTES de importar app.py
-if IS_VERCEL and not (os.environ.get('DATABASE_URL') or os.environ.get('SUPABASE_DB_URL')):
+USE_SUPABASE = bool(os.environ.get('DATABASE_URL') or os.environ.get('SUPABASE_DB_URL'))
+
+if IS_VERCEL and not USE_SUPABASE:
     # Estamos na Vercel sem Supabase, usar /tmp para SQLite (não recomendado para produção)
     db_path = '/tmp/dados_escala.db'
     os.environ['DATABASE_PATH'] = db_path
@@ -26,13 +28,16 @@ elif not IS_VERCEL:
     # Desenvolvimento local - SQLite
     db_path = os.path.join(parent_dir, 'dados_escala.db')
     os.environ['DATABASE_PATH'] = db_path
+else:
+    # Usando Supabase - não precisa de db_path
+    db_path = None
 
 # Importar a aplicação Flask
 from app import app, init_app
 
-# Inicializar o banco de dados na primeira importação
+# Inicializar o banco de dados na primeira importação (apenas para SQLite)
 try:
-    if not os.path.exists(db_path):
+    if not USE_SUPABASE and db_path and not os.path.exists(db_path):
         # Garantir que o diretório existe
         db_dir = os.path.dirname(db_path)
         if db_dir and not os.path.exists(db_dir):
@@ -67,9 +72,9 @@ class handler(BaseHTTPRequestHandler):
         self._handle_request()
     
     def _handle_request(self):
-        # Garantir que o banco existe antes de processar a requisição
+        # Garantir que o banco existe antes de processar a requisição (apenas para SQLite)
         try:
-            if not os.path.exists(db_path):
+            if not USE_SUPABASE and db_path and not os.path.exists(db_path):
                 db_dir = os.path.dirname(db_path)
                 if db_dir and not os.path.exists(db_dir):
                     os.makedirs(db_dir, exist_ok=True)

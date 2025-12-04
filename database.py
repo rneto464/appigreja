@@ -13,6 +13,42 @@ if USE_POSTGRES:
     import psycopg2
     from psycopg2.extras import RealDictCursor
     
+    class ConnectionWrapper:
+        """Wrapper para conexão PostgreSQL que simula interface SQLite"""
+        def __init__(self, conn):
+            self.conn = conn
+            self._cursor = None
+        
+        def execute(self, query, params=None):
+            """Executa query e retorna cursor compatível com SQLite"""
+            self._cursor = self.conn.cursor()
+            if params:
+                # Converter ? para %s para PostgreSQL
+                # Contar quantos ? existem e garantir que temos params suficientes
+                query_pg = query.replace('?', '%s')
+                self._cursor.execute(query_pg, params)
+            else:
+                self._cursor.execute(query)
+            return self._cursor
+        
+        def commit(self):
+            """Commit das alterações"""
+            self.conn.commit()
+        
+        def close(self):
+            """Fecha conexão"""
+            if self._cursor:
+                self._cursor.close()
+            self.conn.close()
+        
+        def cursor(self):
+            """Retorna cursor"""
+            return self.conn.cursor()
+        
+        def __getattr__(self, name):
+            """Delega outros atributos para a conexão"""
+            return getattr(self.conn, name)
+    
     def get_db_connection():
         """Cria conexão com PostgreSQL (Supabase)"""
         try:
@@ -28,7 +64,8 @@ if USE_POSTGRES:
                 database_url,
                 cursor_factory=RealDictCursor
             )
-            return conn
+            # Retornar wrapper para compatibilidade com SQLite
+            return ConnectionWrapper(conn)
         except Exception as e:
             print(f"Erro ao conectar ao PostgreSQL: {e}")
             raise
