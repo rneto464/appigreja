@@ -1744,6 +1744,10 @@ button:hover, .button-link:hover, .edit-button:hover { background-color: #3b82f6
   padding: 25px;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .schedule-card:hover {
@@ -2978,6 +2982,10 @@ button:hover, .button-link:hover, .edit-button:hover { background-color: #3b82f6
 
   .schedule-card {
     padding: 15px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
 
   .schedule-date {
