@@ -135,11 +135,24 @@ def get_db():
     # Se o banco não existe, criar e inicializar
     if not os.path.exists(DATABASE):
         try:
+            # Criar conexão diretamente para evitar recursão
+            conn = sqlite3.connect(DATABASE)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            
+            # Criar tabelas diretamente
+            cursor.execute(''' CREATE TABLE IF NOT EXISTS escalas ( id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT NOT NULL, tipo_escala TEXT NOT NULL, bata_cor TEXT, cerimoniarios TEXT, veteranos TEXT, mirins TEXT, turibulo TEXT, naveta TEXT, tochas TEXT ) ''')
+            cursor.execute(''' CREATE TABLE IF NOT EXISTS pessoas ( id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL UNIQUE, grupo TEXT NOT NULL, funcoes TEXT ) ''')
+            cursor.execute(''' CREATE TABLE IF NOT EXISTS escala_templates ( id INTEGER PRIMARY KEY AUTOINCREMENT, tipo_escala TEXT NOT NULL UNIQUE, cerimoniarios_template TEXT, veteranos_template TEXT, mirins_template TEXT, turibulo_template TEXT, naveta_template TEXT, tochas_template TEXT ) ''')
+            cursor.execute(''' CREATE TABLE IF NOT EXISTS dias_missa ( id INTEGER PRIMARY KEY AUTOINCREMENT, dia_semana INTEGER NOT NULL, tipo_escala TEXT NOT NULL, horario TEXT, ativo INTEGER DEFAULT 1, ordem INTEGER DEFAULT 0 ) ''')
+            conn.commit()
+            conn.close()
+            
+            # Popular dados iniciais
             with app.app_context():
-                init_db()
                 popular_templates_iniciais()
                 popular_dias_missa_iniciais()
-                print(f"Banco de dados criado em: {DATABASE}")
+            print(f"Banco de dados criado em: {DATABASE}")
         except Exception as e:
             print(f"Erro ao criar banco de dados: {e}")
             import traceback
@@ -150,16 +163,18 @@ def get_db():
     return conn
 
 def init_db():
-    with app.app_context():
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute(''' CREATE TABLE IF NOT EXISTS escalas ( id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT NOT NULL, tipo_escala TEXT NOT NULL, bata_cor TEXT, cerimoniarios TEXT, veteranos TEXT, mirins TEXT, turibulo TEXT, naveta TEXT, tochas TEXT ) ''')
-        cursor.execute(''' CREATE TABLE IF NOT EXISTS pessoas ( id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL UNIQUE, grupo TEXT NOT NULL, funcoes TEXT ) ''')
-        cursor.execute(''' CREATE TABLE IF NOT EXISTS escala_templates ( id INTEGER PRIMARY KEY AUTOINCREMENT, tipo_escala TEXT NOT NULL UNIQUE, cerimoniarios_template TEXT, veteranos_template TEXT, mirins_template TEXT, turibulo_template TEXT, naveta_template TEXT, tochas_template TEXT ) ''')
-        cursor.execute(''' CREATE TABLE IF NOT EXISTS dias_missa ( id INTEGER PRIMARY KEY AUTOINCREMENT, dia_semana INTEGER NOT NULL, tipo_escala TEXT NOT NULL, horario TEXT, ativo INTEGER DEFAULT 1, ordem INTEGER DEFAULT 0 ) ''')
-        db.commit()
-        db.close()
-        print("Banco de dados inicializado/verificado.")
+    """Inicializa o banco de dados criando as tabelas se não existirem"""
+    # Criar conexão diretamente para evitar recursão com get_db()
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute(''' CREATE TABLE IF NOT EXISTS escalas ( id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT NOT NULL, tipo_escala TEXT NOT NULL, bata_cor TEXT, cerimoniarios TEXT, veteranos TEXT, mirins TEXT, turibulo TEXT, naveta TEXT, tochas TEXT ) ''')
+    cursor.execute(''' CREATE TABLE IF NOT EXISTS pessoas ( id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL UNIQUE, grupo TEXT NOT NULL, funcoes TEXT ) ''')
+    cursor.execute(''' CREATE TABLE IF NOT EXISTS escala_templates ( id INTEGER PRIMARY KEY AUTOINCREMENT, tipo_escala TEXT NOT NULL UNIQUE, cerimoniarios_template TEXT, veteranos_template TEXT, mirins_template TEXT, turibulo_template TEXT, naveta_template TEXT, tochas_template TEXT ) ''')
+    cursor.execute(''' CREATE TABLE IF NOT EXISTS dias_missa ( id INTEGER PRIMARY KEY AUTOINCREMENT, dia_semana INTEGER NOT NULL, tipo_escala TEXT NOT NULL, horario TEXT, ativo INTEGER DEFAULT 1, ordem INTEGER DEFAULT 0 ) ''')
+    conn.commit()
+    conn.close()
+    print("Banco de dados inicializado/verificado.")
 
 def popular_templates_iniciais():
     with app.app_context():
@@ -971,6 +986,9 @@ def gerenciar_pessoas_web():
     mestres_de_cerimonia = [p for p in todas_as_pessoas if p['grupo'] == GRUPO_CERIMONIARIO]
     experientes = [p for p in todas_as_pessoas if p['grupo'] == GRUPO_VETERANO]
     mirins = [p for p in todas_as_pessoas if p['grupo'] == GRUPO_MIRINS]
+    # Debug: verificar se está lendo corretamente
+    print(f"[DEBUG] Total de pessoas lidas: {len(todas_as_pessoas)}")
+    print(f"[DEBUG] Mestres: {len(mestres_de_cerimonia)}, Experientes: {len(experientes)}, Mirins: {len(mirins)}")
     return render_template('gerenciar_pessoas.html', mestres_de_cerimonia=mestres_de_cerimonia, experientes=experientes, mirins=mirins)
 
 @app.route('/adicionar_pessoa', methods=['POST'])
