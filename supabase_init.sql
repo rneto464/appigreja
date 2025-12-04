@@ -53,7 +53,8 @@ CREATE TABLE IF NOT EXISTS dias_missa (
     tipo_escala VARCHAR(100) NOT NULL,
     horario VARCHAR(10),
     ativo INTEGER DEFAULT 1,
-    ordem INTEGER DEFAULT 0
+    ordem INTEGER DEFAULT 0,
+    UNIQUE(dia_semana, tipo_escala)
 );
 
 CREATE INDEX IF NOT EXISTS idx_dias_missa_dia ON dias_missa(dia_semana);
