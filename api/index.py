@@ -15,13 +15,13 @@ sys.path.insert(0, parent_dir)
 # Detectar se estamos na Vercel
 IS_VERCEL = bool(os.environ.get('VERCEL') or os.environ.get('VERCEL_ENV'))
 
-# Na Vercel, se não houver MySQL configurado, usar /tmp para SQLite
+# Na Vercel, se não houver Supabase configurado, usar /tmp para SQLite
 # IMPORTANTE: Definir ANTES de importar app.py
-if IS_VERCEL and not (os.environ.get('MYSQL_HOST') or os.environ.get('DATABASE_URL')):
-    # Estamos na Vercel sem MySQL, usar /tmp para SQLite (não recomendado para produção)
+if IS_VERCEL and not (os.environ.get('DATABASE_URL') or os.environ.get('SUPABASE_DB_URL')):
+    # Estamos na Vercel sem Supabase, usar /tmp para SQLite (não recomendado para produção)
     db_path = '/tmp/dados_escala.db'
     os.environ['DATABASE_PATH'] = db_path
-    print("⚠️ AVISO: Usando SQLite em /tmp. Configure MySQL para produção!")
+    print("⚠️ AVISO: Usando SQLite em /tmp. Configure Supabase (DATABASE_URL) para produção!")
 elif not IS_VERCEL:
     # Desenvolvimento local - SQLite
     db_path = os.path.join(parent_dir, 'dados_escala.db')

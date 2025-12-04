@@ -7,7 +7,7 @@ from calendar import monthrange
 import io
 import json
 from database import (
-    get_db_connection, create_tables, USE_MYSQL, DB_TYPE,
+    get_db_connection, create_tables, USE_POSTGRES, DB_TYPE,
     IntegrityError, OperationalError, build_date_filter_query
 )
 # xlsxwriter é usado como engine do pandas, não precisa importar diretamente
@@ -131,7 +131,7 @@ def get_db():
     conn = get_db_connection()
     
     # Verificar se as tabelas existem (apenas para SQLite)
-    if not USE_MYSQL:
+    if not USE_POSTGRES:
         # Para SQLite, verificar se o banco existe
         database_path = os.environ.get('DATABASE_PATH', 'dados_escala.db')
         if not os.path.exists(database_path):

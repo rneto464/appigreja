@@ -27,9 +27,8 @@ idna==3.10
 urllib3==2.4.0
 requests==2.32.3
 
-# MySQL
-PyMySQL==1.1.0
-cryptography==43.0.3
+# PostgreSQL (Supabase)
+psycopg2-binary==2.9.9
 
 # Outros
 six==1.17.0

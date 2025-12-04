@@ -1,72 +1,52 @@
-# 🚀 Guia Rápido de Deploy na Vercel
+# 🚀 Guia Rápido de Deploy na Vercel com Supabase
 
 ## ✅ Checklist Pré-Deploy
 
-- [x] Código corrigido (recursão infinita resolvida)
+- [x] Código atualizado para Supabase (PostgreSQL)
 - [x] Código no GitHub (repositório: rneto464/appigreja)
 - [x] Arquivos de configuração prontos (vercel.json, api/index.py)
 - [x] Dependências atualizadas (requirements.txt)
 
 ## 📝 Passos para Deploy
 
-### Opção 1: Via Dashboard da Vercel (Recomendado)
+### 1. Configurar Supabase
+
+1. **Crie uma conta**: https://supabase.com
+2. **Crie um projeto**:
+   - Nome: `appigreja`
+   - Senha do banco: (anote esta senha!)
+   - Região: escolha a mais próxima
+3. **Obtenha a DATABASE_URL**:
+   - Settings → Database → Connection string → URI
+   - Copie a URL completa
+   - **IMPORTANTE**: Substitua `[YOUR-PASSWORD]` pela senha real
+4. **Crie as tabelas**:
+   - SQL Editor → New query
+   - Execute o SQL do arquivo `SUPABASE_SETUP.md`
+
+### 2. Configurar Variáveis na Vercel
 
 1. **Acesse**: https://vercel.com
-2. **Faça login** na sua conta
-3. **Clique em "Add New Project"**
-4. **Conecte o repositório GitHub**:
-   - Selecione o repositório: `rneto464/appigreja`
-   - Clique em "Import"
-5. **Configure o projeto**:
-   - **Framework Preset**: Other
-   - **Root Directory**: `./` (deixe como está)
-   - **Build Command**: (deixe vazio)
-   - **Output Directory**: (deixe vazio)
-6. **Adicione Variáveis de Ambiente**:
-   - Clique em "Environment Variables"
-   - Adicione:
-     - **Nome**: `SECRET_KEY`
-     - **Valor**: (gere uma chave secreta - veja abaixo)
-     - **Environments**: Production, Preview, Development
-7. **Clique em "Deploy"**
+2. **Vá no seu projeto** → Settings → Environment Variables
+3. **Adicione**:
 
-### Opção 2: Via Vercel CLI
+   **DATABASE_URL**:
+   - Key: `DATABASE_URL`
+   - Value: `postgresql://postgres:[SENHA]@db.xxxxx.supabase.co:5432/postgres`
+   - Environments: ✅ Production, ✅ Preview, ✅ Development
+
+   **SECRET_KEY**:
+   - Key: `SECRET_KEY`
+   - Value: (gere com: `python -c "import secrets; print(secrets.token_hex(32))"`)
+   - Environments: ✅ Production, ✅ Preview, ✅ Development
+
+### 3. Deploy
+
+A Vercel fará deploy automaticamente ao fazer push, ou:
 
 ```bash
-# 1. Instalar Vercel CLI (se ainda não tiver)
-npm install -g vercel
-
-# 2. Fazer login
-vercel login
-
-# 3. Gerar SECRET_KEY
-python -c "import secrets; print(secrets.token_hex(32))"
-
-# 4. Configurar variável de ambiente (ou fazer via dashboard)
-vercel env add SECRET_KEY
-
-# 5. Deploy para produção
 vercel --prod
 ```
-
-## 🔑 Gerar SECRET_KEY
-
-Execute no terminal:
-```bash
-python -c "import secrets; print(secrets.token_hex(32))"
-```
-
-Copie o resultado e use como valor da variável `SECRET_KEY` na Vercel.
-
-## ⚠️ Importante
-
-1. **Banco de Dados**: Na Vercel, o banco SQLite será criado em `/tmp/dados_escala.db`
-   - ⚠️ Este banco é **efêmero** (reseta após inatividade)
-   - Para produção, considere usar PostgreSQL ou MySQL
-
-2. **Primeira Requisição**: A primeira requisição pode ser mais lenta pois inicializa o banco
-
-3. **Cadastrar Pessoas**: Após o deploy, acesse `/cadastrar_pessoas` para cadastrar as 31 pessoas
 
 ## 🔍 Verificar Deploy
 
@@ -75,21 +55,33 @@ Após o deploy, acesse:
 - Página de gerenciar pessoas: `https://seu-projeto.vercel.app/gerenciar_pessoas`
 - Cadastrar pessoas: `https://seu-projeto.vercel.app/cadastrar_pessoas`
 
+## ⚠️ Importante
+
+1. **Supabase**: Banco PostgreSQL gratuito (500MB)
+   - ✅ Persistente (não reseta)
+   - ✅ Backup automático
+   - ✅ Dashboard completo
+
+2. **Primeira Requisição**: A primeira requisição pode ser mais lenta pois inicializa o banco
+
+3. **Cadastrar Pessoas**: Após o deploy, as pessoas serão cadastradas automaticamente na primeira requisição
+
 ## 🐛 Troubleshooting
+
+### Erro: "Connection refused"
+- Verifique se a `DATABASE_URL` está correta
+- Verifique se substituiu `[YOUR-PASSWORD]` pela senha real
+- Verifique se o projeto Supabase está ativo
+
+### Erro: "Table doesn't exist"
+- Execute o script SQL no Supabase SQL Editor
+- Verifique se todas as tabelas foram criadas
 
 ### Erro: "Module not found"
 - Verifique se todas as dependências estão em `requirements.txt`
 
-### Erro: "Database locked"
-- Normal em ambiente serverless com SQLite
-- Considere migrar para PostgreSQL
-
-### Erro: "Function timeout"
-- A Vercel tem limite de 10s (hobby) ou 60s (pro)
-- Otimize operações pesadas
-
 ## 📚 Recursos
 
-- [Documentação Vercel Python](https://vercel.com/docs/concepts/functions/serverless-functions/runtimes/python)
+- [Guia Completo Supabase](SUPABASE_SETUP.md)
+- [Documentação Supabase](https://supabase.com/docs)
 - [Vercel Dashboard](https://vercel.com/dashboard)
-
