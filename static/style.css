@@ -515,6 +515,9 @@ button:hover, .button-link:hover, .edit-button:hover { background-color: #3b82f6
   height: 100%;
   overflow: auto;
   background-color: rgba(0, 0, 0, 0.6);
+  -webkit-overflow-scrolling: touch;
+  /* Prevenir scroll do body quando modal está aberto */
+  overscroll-behavior: contain;
 }
 
 
@@ -538,6 +541,10 @@ button:hover, .button-link:hover, .edit-button:hover { background-color: #3b82f6
   padding: 0;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   max-width: 600px;
+  max-height: 90vh;
+  margin: 5vh auto;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -548,6 +555,7 @@ button:hover, .button-link:hover, .edit-button:hover { background-color: #3b82f6
   padding: 25px 30px;
   border-bottom: 2px solid #374151;
   background: #111827;
+  flex-shrink: 0;
 }
 
 .modal-title-modern {
@@ -581,6 +589,11 @@ button:hover, .button-link:hover, .edit-button:hover { background-color: #3b82f6
 .modal-body-modern {
   padding: 30px;
   color: #e5e7eb;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-footer {
@@ -589,6 +602,7 @@ button:hover, .button-link:hover, .edit-button:hover { background-color: #3b82f6
   background: #111827;
   display: flex;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 /* Container de Detalhes do Modal */
@@ -3006,6 +3020,26 @@ img {
     padding: 20px;
     max-height: 90vh;
     overflow-y: auto;
+  }
+
+  .modal-content.modern-modal {
+    width: 95%;
+    max-width: 95%;
+    margin: 2.5vh auto;
+    max-height: 95vh;
+  }
+
+  .modal-body-modern {
+    padding: 20px;
+    max-height: calc(95vh - 180px); /* Altura total menos header e footer */
+  }
+
+  .modal-header {
+    padding: 20px;
+  }
+
+  .modal-footer {
+    padding: 15px 20px;
   }
 
   /* Melhorar legibilidade de textos pequenos */
