@@ -469,6 +469,8 @@
                 
                 modalBody.innerHTML = modalHTML;
                 modal.style.display = "block";
+                // Prevenir scroll do body quando modal está aberto
+                document.body.style.overflow = "hidden";
             }
 
             function countMembers(escala) {
@@ -623,15 +625,21 @@
                 }
             }
             
+            // Função para fechar modal e restaurar scroll
+            function closeModal() {
+                modal.style.display = "none";
+                document.body.style.overflow = "auto";
+            }
+
             if (modal) {
-                closeButton.onclick = function() { modal.style.display = "none"; }
+                closeButton.onclick = function() { closeModal(); }
                 if (modalCloseBtn) {
-                    modalCloseBtn.onclick = function() { modal.style.display = "none"; }
+                    modalCloseBtn.onclick = function() { closeModal(); }
                 }
                 // Melhorar fechamento ao clicar fora (incluindo mobile)
                 modal.onclick = function(event) { 
                     if (event.target === modal) { 
-                        modal.style.display = "none"; 
+                        closeModal();
                     } 
                 }
                 // Prevenir fechamento ao clicar dentro do modal-content
