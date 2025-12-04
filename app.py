@@ -9,15 +9,6 @@ import io
 import json
 # xlsxwriter é usado como engine do pandas, não precisa importar diretamente
 
-# --- Importações para Google Calendar API ---
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-
-SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
-
 # --- Configurações do Flask ---
 app = Flask(__name__)
 # Chave secreta - em produção, usar variável de ambiente
@@ -82,107 +73,6 @@ g_domingo_07h_template_initial = [
     'Karla', 'Mariana Jansen', 'Mateus', 'Pedro Barroso', 'Pedro Cutrim',
     'Pedro Reis', 'Theo', 'Thiago Alex', 'Vitória'
 ]
-
-# --- Funções do Google Calendar ---
-def ensure_credentials_file():
-    """Cria credentials.json a partir de variáveis de ambiente se necessário"""
-    credentials_path = os.path.join(BASE_DIR, "credentials.json")
-    
-    # Se o arquivo já existe, não fazer nada
-    if os.path.exists(credentials_path):
-        return credentials_path
-    
-    # Tentar criar a partir de variáveis de ambiente
-    client_id = os.environ.get('GOOGLE_CLIENT_ID')
-    client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
-    project_id = os.environ.get('GOOGLE_PROJECT_ID', 'escala-coroinhas-app')
-    
-    if client_id and client_secret:
-        # Obter URL da Vercel se disponível
-        vercel_url = os.environ.get('VERCEL_URL', '')
-        redirect_uris = [
-            "http://localhost:5000/oauth2callback",
-            "http://localhost:3000/oauth2callback"
-        ]
-        
-        # Adicionar URL da Vercel se disponível
-        if vercel_url:
-            redirect_uris.append(f"https://{vercel_url}/oauth2callback")
-        
-        # Adicionar URL de produção se configurada
-        prod_url = os.environ.get('PRODUCTION_URL')
-        if prod_url:
-            redirect_uris.append(f"{prod_url}/oauth2callback")
-        
-        credentials_data = {
-            "web": {
-                "client_id": client_id,
-                "project_id": project_id,
-                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                "token_uri": "https://oauth2.googleapis.com/token",
-                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                "client_secret": client_secret,
-                "redirect_uris": redirect_uris
-            }
-        }
-        
-        try:
-            with open(credentials_path, 'w') as f:
-                json.dump(credentials_data, f, indent=2)
-            print(f"credentials.json criado a partir de variáveis de ambiente")
-            return credentials_path
-        except Exception as e:
-            print(f"Erro ao criar credentials.json: {e}")
-            return None
-    
-    return None
-
-def get_google_calendar_service():
-    creds = None
-    token_path = os.path.join(BASE_DIR, "token.json")
-    
-    # Garantir que credentials.json existe
-    credentials_path = ensure_credentials_file()
-    if not credentials_path or not os.path.exists(credentials_path):
-        print("AVISO: credentials.json não encontrado e variáveis de ambiente não configuradas")
-        return None
-    
-    if os.path.exists(token_path):
-        creds = Credentials.from_authorized_user_file(token_path, SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            # Na Vercel/serverless, não podemos usar run_local_server
-            # Retornar None e deixar o usuário autenticar manualmente se necessário
-            print("AVISO: Autenticação Google Calendar requer interação do usuário")
-            return None
-        with open(token_path, "w") as token:
-            token.write(creds.to_json())
-    try:
-        service = build("calendar", "v3", credentials=creds)
-        return service
-    except HttpError as error:
-        print(f"ERRO GOOGLE CALENDAR API: {error}")
-        flash(f"Erro ao conectar ao Google Calendar: {error}", 'error')
-        return None
-
-def create_calendar_event(service, scale_data):
-    summary = f"Escala: {scale_data['tipo_escala']}"
-    description = ( f"Cerimoniários: {scale_data['cerimoniarios']}\n" f"Veteranos: {scale_data['veteranos']}\n" f"{GRUPO_MIRINS}: {scale_data['mirins']}" )
-    if scale_data.get('turibulo'): description += f"\nTuríbulo: {scale_data['turibulo']}"
-    if scale_data.get('naveta'): description += f"\nNaveta: {scale_data['naveta']}"
-    if scale_data.get('tochas'): description += f"\nTochas: {scale_data['tochas']}"
-    try:
-        event_date_obj = datetime.strptime(scale_data['data'], "%d/%m/%Y")
-        event_date_str = event_date_obj.strftime('%Y-%m-%d')
-    except ValueError: return
-    event = { 'summary': summary, 'description': description, 'start': {'date': event_date_str, 'timeZone': 'America/Sao_Paulo'}, 'end': {'date': event_date_str, 'timeZone': 'America/Sao_Paulo'}, }
-    try:
-        service.events().insert(calendarId='primary', body=event).execute()
-        flash(f"Evento '{summary}' criado no Google Calendar para {scale_data['data']}.", 'success')
-    except HttpError as error:
-        flash(f"Erro ao criar evento '{summary}' no Google Calendar: {error}", 'error')
 
 # --- Funções Auxiliares (Padronização) ---
 def formatar_data_pt_br(data_obj):
