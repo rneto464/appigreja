@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Frequência</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Brasão da Paróquia -->
+        <div class="brasao-container">
+            <img src="{{ url_for('static', filename='brasao.png') }}" alt="Brasão da Paróquia São Maximiliano Maria Kolbe" class="brasao-image">
+        </div>
+        
+        <h1 class="page-title">Relatório de Frequência</h1>
+        <p class="page-subtitle">Acompanhe a frequência de serviços dos coroinhas</p>
+        
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <span class="modern-card-icon">📊</span>
+                <h2>Selecionar Período</h2>
+            </div>
+            <form action="{{ url_for('relatorio_frequencia_web') }}" method="get" class="edit-form">
+                <h4>Visualizar Relatório de:</h4>
+                <label for="mes_ver">Mês:</label>
+                <input type="number" id="mes_ver" name="mes" min="1" max="12" value="{{ mes }}" required>
+                <label for="ano_ver">Ano:</label>
+                <input type="number" id="ano_ver" name="ano" min="2020" max="2050" value="{{ ano }}" required>
+                <button type="submit" class="btn-primary">📊 Ver Relatório</button>
+            </form>
+        </div>
+        
+        <div class="modern-card" style="margin-top: 30px;">
+            <div class="modern-card-header">
+                <h3 style="margin: 0;">Frequência para {{ "%02d"|format(mes) }}/{{ ano }}</h3>
+            </div>
+        {% if frequencia %}
+            <div style="overflow-x: auto;">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Nome do Coroinha</th>
+                        <th>Nº de Serviços no Mês</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for nome, contagem in frequencia %}
+                    <tr>
+                        <td>{{ nome }}</td>
+                        <td>{{ contagem }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+        {% else %}
+            <p style="text-align: center; margin-top: 20px; color: #9ca3af;">Nenhuma escala encontrada para este mês. Não há dados para exibir.</p>
+        {% endif %}
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="{{ url_for('index') }}" class="btn-cancel" style="display: inline-block; min-width: 200px;">← Voltar para Escalas</a>
+        </div>
+    </div>
+</body>
+</html>

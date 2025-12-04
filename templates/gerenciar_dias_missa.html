@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Dias de Missa</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Brasão da Paróquia -->
+        <div class="brasao-container">
+            <img src="{{ url_for('static', filename='brasao.png') }}" alt="Brasão da Paróquia São Maximiliano Maria Kolbe" class="brasao-image">
+        </div>
+        
+        <h1 class="page-title">Gerenciar Dias de Missa</h1>
+        <p class="page-subtitle">Configure quais dias da semana terão missas e quais tipos de escala serão gerados</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <span class="modern-card-icon">➕</span>
+                <h2>Adicionar Novo Dia de Missa</h2>
+            </div>
+            <form action="{{ url_for('adicionar_dia_missa_web') }}" method="post">
+                <label for="dia_semana">Dia da Semana:</label>
+                <select name="dia_semana" id="dia_semana" required>
+                    <option value="0">Segunda-feira</option>
+                    <option value="1">Terça-feira</option>
+                    <option value="2">Quarta-feira</option>
+                    <option value="3">Quinta-feira</option>
+                    <option value="4">Sexta-feira</option>
+                    <option value="5">Sábado</option>
+                    <option value="6" selected>Domingo</option>
+                </select>
+
+                <label for="tipo_escala">Tipo de Escala:</label>
+                <select name="tipo_escala" id="tipo_escala" required>
+                    {% for tipo in todos_tipos %}
+                        <option value="{{ tipo.tipo_escala }}">{{ tipo.tipo_escala }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="horario">Horário (opcional):</label>
+                <input type="text" name="horario" id="horario" placeholder="Ex: 07:00, 18:00, 19:00">
+
+                <label style="display: flex; align-items: center; gap: 10px; margin-top: 15px;">
+                    <input type="checkbox" name="ativo" checked style="width: auto;">
+                    <span>Ativo (será usado na geração de escalas)</span>
+                </label>
+
+                <button type="submit" class="btn-primary" style="margin-top: 20px;">➕ Adicionar Dia de Missa</button>
+            </form>
+        </div>
+
+        <h2 class="section-title" style="text-align: center; margin: 40px 0 30px 0;">Dias de Missa Configurados</h2>
+        {% if dias_missa %}
+            <div class="escala-list">
+                {% for dia in dias_missa %}
+                    <div class="modern-card">
+                        <div class="modern-card-header">
+                            <h3 style="margin: 0;">{{ nomes_dias[dia.dia_semana] }}</h3>
+                        </div>
+                        <p><strong>Tipo de Escala:</strong> {{ dia.tipo_escala }}</p>
+                        {% if dia.horario %}
+                            <p><strong>Horário:</strong> {{ dia.horario }}</p>
+                        {% endif %}
+                        <p><strong>Status:</strong> 
+                            <span class="{% if dia.ativo %}status-ativo{% else %}status-inativo{% endif %}">
+                                {% if dia.ativo %}Ativo{% else %}Inativo{% endif %}
+                            </span>
+                        </p>
+                        <p><strong>Ordem:</strong> {{ dia.ordem }}</p>
+
+                        <form action="{{ url_for('editar_dia_missa_web', dia_id=dia.id) }}" method="post" style="margin-top: 15px;">
+                            <label for="dia_semana_{{ dia.id }}">Dia da Semana:</label>
+                            <select name="dia_semana" id="dia_semana_{{ dia.id }}" required>
+                                {% for i in range(7) %}
+                                    <option value="{{ i }}" {% if i == dia.dia_semana %}selected{% endif %}>
+                                        {{ nomes_dias[i] }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+
+                            <label for="tipo_escala_{{ dia.id }}">Tipo de Escala:</label>
+                            <select name="tipo_escala" id="tipo_escala_{{ dia.id }}" required>
+                                {% for tipo in todos_tipos %}
+                                    <option value="{{ tipo.tipo_escala }}" {% if tipo.tipo_escala == dia.tipo_escala %}selected{% endif %}>
+                                        {{ tipo.tipo_escala }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+
+                            <label for="horario_{{ dia.id }}">Horário:</label>
+                            <input type="text" name="horario" id="horario_{{ dia.id }}" value="{{ dia.horario or '' }}" placeholder="Ex: 07:00">
+
+                            <label for="ordem_{{ dia.id }}">Ordem:</label>
+                            <input type="number" name="ordem" id="ordem_{{ dia.id }}" value="{{ dia.ordem }}" min="0">
+
+                            <label style="display: flex; align-items: center; gap: 10px; margin-top: 15px;">
+                                <input type="checkbox" name="ativo" {% if dia.ativo %}checked{% endif %} style="width: auto;">
+                                <span>Ativo</span>
+                            </label>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">💾 Atualizar</button>
+                                <form action="{{ url_for('remover_dia_missa_web', dia_id=dia.id) }}" method="post" style="flex: 1; margin: 0;" onsubmit="return confirm('Tem certeza que deseja remover este dia de missa?');">
+                                    <button type="submit" class="button-danger" style="width: 100%;">🗑️ Remover</button>
+                                </form>
+                            </div>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="text-align: center; margin-top: 20px;">Nenhum dia de missa configurado. Adicione um acima.</p>
+        {% endif %}
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="{{ url_for('index') }}" class="btn-cancel" style="display: inline-block; min-width: 200px;">← Voltar para Escalas</a>
+        </div>
+    </div>
+</body>
+</html>
+
