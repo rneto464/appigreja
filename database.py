@@ -22,6 +22,14 @@ if USE_POSTGRES:
         def execute(self, query, params=None):
             """Executa query e retorna cursor compatível com SQLite"""
             try:
+                # Fechar cursor anterior se existir para evitar vazamento de recursos
+                if self._cursor is not None:
+                    try:
+                        self._cursor.close()
+                    except Exception:
+                        pass  # Ignorar erros ao fechar cursor anterior
+                
+                # Criar novo cursor
                 self._cursor = self.conn.cursor()
                 if params:
                     # Converter ? para %s para PostgreSQL

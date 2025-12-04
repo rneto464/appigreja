@@ -557,9 +557,11 @@ def gerar_escala_para_mes(mes, ano):
                 # Se for domingo, adicionar também ao conjunto de domingo para prevenir repetição entre manhã/noite
                 if is_domingo:
                     escalados_domingo.update(todos_escalados_esta_missa)
-                db.execute('''INSERT INTO escalas (data, tipo_escala, bata_cor, cerimoniarios, veteranos, mirins, turibulo, naveta, tochas)
+                # Fechar cursor após cada INSERT para evitar vazamento de recursos
+                cursor = db.execute('''INSERT INTO escalas (data, tipo_escala, bata_cor, cerimoniarios, veteranos, mirins, turibulo, naveta, tochas)
                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                               (data_atual.strftime('%d/%m/%Y'), tipo_escala, 'Branca', juntar_nomes(cerimoniarios), juntar_nomes(veteranos), juntar_nomes(mirins), juntar_nomes(turibulo), juntar_nomes(naveta), juntar_nomes(tochas)))
+                cursor.close()  # Fechar cursor imediatamente após uso
                 escalas_geradas += 1
 
             data_atual += timedelta(days=1)
