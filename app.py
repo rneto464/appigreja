@@ -312,7 +312,6 @@ def gerar_escala_para_mes(mes, ano):
     db = None
     try:
         db = get_db()
-        cursor = db.cursor()
         
         # Validar mês e ano
         if mes < 1 or mes > 12:
@@ -322,10 +321,11 @@ def gerar_escala_para_mes(mes, ano):
         
         # Deletar escalas do mês/ano usando função compatível
         date_filter, date_params = build_date_filter_query(mes, ano)
-        cursor.execute(f"DELETE FROM escalas {date_filter}", date_params)
+        db.execute(f"DELETE FROM escalas {date_filter}", date_params)
 
-        templates = {row['tipo_escala']: row for row in cursor.execute('SELECT * FROM escala_templates').fetchall()}
-        pessoas_e_grupos = {row['nome']: row['grupo'] for row in cursor.execute('SELECT nome, grupo FROM pessoas').fetchall()}
+        # Usar db.execute() que retorna cursor, não cursor.execute() diretamente
+        templates = {row['tipo_escala']: row for row in db.execute('SELECT * FROM escala_templates').fetchall()}
+        pessoas_e_grupos = {row['nome']: row['grupo'] for row in db.execute('SELECT nome, grupo FROM pessoas').fetchall()}
         
         # Validar que há pessoas cadastradas
         if not pessoas_e_grupos:
@@ -356,7 +356,7 @@ def gerar_escala_para_mes(mes, ano):
         DIAS_PERMITIDOS_GERACAO = {6, 1, 3}  # Domingo, Terça, Quinta
         
         try:
-            dias_missa_config = cursor.execute('SELECT * FROM dias_missa WHERE ativo = 1 ORDER BY ordem').fetchall()
+            dias_missa_config = db.execute('SELECT * FROM dias_missa WHERE ativo = 1 ORDER BY ordem').fetchall()
         except OperationalError:
             # Tabela pode não existir ainda, usar configuração padrão
             print("Tabela dias_missa não encontrada, usando configuração padrão.")
@@ -557,7 +557,7 @@ def gerar_escala_para_mes(mes, ano):
                 # Se for domingo, adicionar também ao conjunto de domingo para prevenir repetição entre manhã/noite
                 if is_domingo:
                     escalados_domingo.update(todos_escalados_esta_missa)
-                cursor.execute('''INSERT INTO escalas (data, tipo_escala, bata_cor, cerimoniarios, veteranos, mirins, turibulo, naveta, tochas)
+                db.execute('''INSERT INTO escalas (data, tipo_escala, bata_cor, cerimoniarios, veteranos, mirins, turibulo, naveta, tochas)
                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                               (data_atual.strftime('%d/%m/%Y'), tipo_escala, 'Branca', juntar_nomes(cerimoniarios), juntar_nomes(veteranos), juntar_nomes(mirins), juntar_nomes(turibulo), juntar_nomes(naveta), juntar_nomes(tochas)))
                 escalas_geradas += 1
