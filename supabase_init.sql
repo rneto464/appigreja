@@ -190,6 +190,8 @@ ON CONFLICT (tipo_escala) DO UPDATE SET
 -- ============================================
 -- 4. INSERIR DIAS DE MISSA
 -- ============================================
+-- Os dias de missa podem ser editados a qualquer momento pela interface web
+-- ou atualizando diretamente nesta tabela
 
 -- Domingo Manhã (dia_semana = 6, domingo)
 INSERT INTO dias_missa (dia_semana, tipo_escala, horario, ativo, ordem) VALUES
@@ -209,6 +211,15 @@ ON CONFLICT DO NOTHING;
 -- Quinta (dia_semana = 3)
 INSERT INTO dias_missa (dia_semana, tipo_escala, horario, ativo, ordem) VALUES
 (3, 'Quinta', '19:00', 1, 4)
+ON CONFLICT DO NOTHING;
+
+-- Demais Dias da Semana (Segunda=0, Quarta=2, Sexta=4, Sábado=5)
+-- Use o template "Demais Dias" para esses dias
+INSERT INTO dias_missa (dia_semana, tipo_escala, horario, ativo, ordem) VALUES
+(0, 'Demais Dias', '19:00', 1, 5),  -- Segunda
+(2, 'Demais Dias', '19:00', 1, 6),  -- Quarta
+(4, 'Demais Dias', '19:00', 1, 7),  -- Sexta
+(5, 'Demais Dias', '19:00', 1, 8)   -- Sábado
 ON CONFLICT DO NOTHING;
 
 -- ============================================
