@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Pessoa</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Brasão da Paróquia -->
+        <div class="brasao-container">
+            <img src="{{ url_for('static', filename='brasao.png') }}" alt="Brasão da Paróquia São Maximiliano Maria Kolbe" class="brasao-image">
+        </div>
+        
+        <div class="edit-form-container">
+            <!-- Header -->
+            <div class="edit-form-header">
+                <div class="edit-form-title-section">
+                    <h1 class="edit-form-title">Editar Pessoa</h1>
+                    <p class="edit-form-subtitle">Modifique as informações do membro</p>
+                </div>
+                <a href="{{ url_for('gerenciar_pessoas_web') }}" class="btn-cancel-header">
+                    <span class="cancel-icon">✕</span>
+                    Cancelar
+                </a>
+            </div>
+
+            <!-- Form Card -->
+            <div class="edit-form-card">
+                <form method="post" class="edit-form-content">
+                    <!-- Nome -->
+                    <div class="form-field-group">
+                        <label for="nome" class="field-label">
+                            <span class="field-icon">👤</span>
+                            Nome
+                        </label>
+                        <input type="text" id="nome" value="{{ pessoa.nome }}" readonly class="form-input" style="padding: 14px 16px; background-color: #1f2937;">
+                    </div>
+
+                    <!-- Grupo Principal -->
+                    <div class="form-field-group">
+                        <label for="grupo_pessoa" class="field-label">
+                            <span class="field-icon">👥</span>
+                            Grupo Principal
+                        </label>
+                        <select id="grupo_pessoa" name="grupo" required class="form-select">
+                            <option value="cerimoniario" {% if pessoa.grupo == 'cerimoniario' %}selected{% endif %}>Cerimoniário</option>
+                            <option value="veterano" {% if pessoa.grupo == 'veterano' %}selected{% endif %}>Veterano</option>
+                            <option value="mirins" {% if pessoa.grupo == 'mirins' %}selected{% endif %}>Mirins</option>
+                        </select>
+                    </div>
+
+                    <!-- Funções Adicionais -->
+                    <div class="form-field-group">
+                        <label class="field-label">
+                            <span class="field-icon">⚙️</span>
+                            Funções Adicionais
+                        </label>
+                        {% set funcoes_atuais = pessoa.funcoes.split(',') if pessoa.funcoes else [] %}
+                        <div class="checkbox-group">
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="turibulo" name="funcoes" value="turibulo" {% if 'turibulo' in funcoes_atuais %}checked{% endif %}>
+                                <span>Turíbulo</span>
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="naveta" name="funcoes" value="naveta" {% if 'naveta' in funcoes_atuais %}checked{% endif %}>
+                                <span>Naveta</span>
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="tochas" name="funcoes" value="tochas" {% if 'tochas' in funcoes_atuais %}checked{% endif %}>
+                                <span>Tochas</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Botões de Ação -->
+                    <div class="edit-form-actions">
+                        <button type="submit" class="btn-save">
+                            <span class="btn-icon">💾</span>
+                            Salvar Alterações
+                        </button>
+                        <a href="{{ url_for('gerenciar_pessoas_web') }}" class="btn-cancel-form">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Dica -->
+            <div class="form-tip">
+                <strong>Dica:</strong> O grupo principal define a função padrão da pessoa. As funções adicionais permitem que ela também seja escalada para outras funções especiais.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

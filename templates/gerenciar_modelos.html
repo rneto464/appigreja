@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Modelos de Escala</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Brasão da Paróquia -->
+        <div class="brasao-container">
+            <img src="{{ url_for('static', filename='brasao.png') }}" alt="Brasão da Paróquia São Maximiliano Maria Kolbe" class="brasao-image">
+        </div>
+        
+        <h1 class="page-title">Gerenciar Modelos de Escala</h1>
+        <p class="page-subtitle">Defina as listas de pessoas padrão para cada tipo de serviço</p>
+
+        <div class="escala-list">
+            {% for template in templates %}
+                <div class="modern-card">
+                    <div class="modern-card-header">
+                        <h3 style="margin: 0;">{{ template.tipo_escala }}</h3>
+                    </div>
+
+                    <div class="role-section">
+                        <strong>Cerimoniários:</strong>
+                        <div class="name-tags">
+                            {% for nome in (template.cerimoniarios_template or '').split(', ') if nome %}
+                                <span class="name-tag">{{ nome }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="role-section">
+                        <strong>Veteranos:</strong>
+                        <div class="name-tags">
+                            {% for nome in (template.veteranos_template or '').split(', ') if nome %}
+                                <span class="name-tag">{{ nome }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="role-section">
+                        <strong>Mirins:</strong>
+                        <div class="name-tags">
+                            {% for nome in (template.mirins_template or '').split(', ') if nome %}
+                                <span class="name-tag">{{ nome }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    {% if template.tipo_escala.startswith('Domingo') %}
+                        <div class="role-section">
+                            <strong>Turíbulo:</strong>
+                            <div class="name-tags">
+                                {% for nome in (template.turibulo_template or '').split(', ') if nome %}
+                                    <span class="name-tag">{{ nome }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="role-section">
+                            <strong>Naveta:</strong>
+                            <div class="name-tags">
+                                {% for nome in (template.naveta_template or '').split(', ') if nome %}
+                                    <span class="name-tag">{{ nome }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="role-section">
+                            <strong>Tochas:</strong>
+                            <div class="name-tags">
+                                {% for nome in (template.tochas_template or '').split(', ') if nome %}
+                                    <span class="name-tag">{{ nome }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="form-actions" style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #374151;">
+                        <a href="{{ url_for('editar_modelo_web', tipo_escala=template.tipo_escala) }}" class="btn-primary">✏️ Editar Modelo</a>
+                        <a href="{{ url_for('exportar_modelo_web', tipo_escala=template.tipo_escala) }}" class="btn-success">📥 Exportar</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="{{ url_for('index') }}" class="btn-cancel" style="display: inline-block; min-width: 200px;">← Voltar para Escalas</a>
+        </div>
+    </div>
+</body>
+</html>
