@@ -1559,6 +1559,83 @@ def relatorio_frequencia_web():
                            frequencia=frequencia_ordenada)
 
 
+@app.route('/cadastrar_pessoas', methods=['GET', 'POST'])
+def cadastrar_pessoas():
+    """Rota administrativa para cadastrar todas as pessoas em massa"""
+    # Dados das pessoas para cadastrar
+    pessoas_para_cadastrar = {
+        'cerimoniario': [
+            "Alejandro", "João Pedro", "Pedro Reis", "Adriano",
+            "Lucas", "André", "Pedro Barroso"
+        ],
+        'veterano': [
+            "Ana Julia", "Vitória", "Sofia Reis", "Armando", "Karla",
+            "Mateus", "João Raffael", "Pedro Cutrim", "Gabriel Mendes"
+        ],
+        'mirins': [
+            "João Gabriel", "Luiza", "Miguel", "Rafael", "Antony",
+            "Maria Celida", "Cauan", "Theo", "Alexia", "Davi Barbalho",
+            "Helisa", "Thiago Alex", "Gabriel Carvalho", "Mariana Jansen",
+            "Bernardo"
+        ]
+    }
+    
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        total_cadastrados = 0
+        total_ignorados = 0
+        pessoas_cadastradas = []
+        pessoas_ignoradas = []
+        
+        # Itera sobre cada grupo e sua lista de nomes
+        for grupo, nomes in pessoas_para_cadastrar.items():
+            for nome in nomes:
+                nome_limpo = nome.strip()
+                
+                # Verifica se a pessoa já existe no banco
+                cursor.execute("SELECT grupo FROM pessoas WHERE nome = ?", (nome_limpo,))
+                pessoa_existente = cursor.fetchone()
+                
+                if pessoa_existente:
+                    grupo_existente = pessoa_existente[0]
+                    if grupo_existente == grupo:
+                        pessoas_ignoradas.append(f"'{nome_limpo}' já está cadastrado(a) no grupo '{grupo}'")
+                    else:
+                        pessoas_ignoradas.append(f"'{nome_limpo}' já existe no grupo '{grupo_existente}' (não alterado para '{grupo}')")
+                    total_ignorados += 1
+                else:
+                    # Pessoa não existe, pode cadastrar
+                    try:
+                        cursor.execute(
+                            "INSERT INTO pessoas (nome, grupo, funcoes) VALUES (?, ?, ?)",
+                            (nome_limpo, grupo, '')
+                        )
+                        pessoas_cadastradas.append(f"'{nome_limpo}' cadastrado(a) no grupo '{grupo}'")
+                        total_cadastrados += 1
+                    except sqlite3.IntegrityError:
+                        pessoas_ignoradas.append(f"Erro ao cadastrar '{nome_limpo}' (pode já existir)")
+                        total_ignorados += 1
+        
+        conn.commit()
+        conn.close()
+        
+        mensagem = f"Cadastro concluído! {total_cadastrados} pessoas novas cadastradas, {total_ignorados} nomes ignorados."
+        flash(mensagem, 'success')
+        
+        # Retornar página com resultado
+        return render_template('cadastro_pessoas_resultado.html',
+                             total_cadastrados=total_cadastrados,
+                             total_ignorados=total_ignorados,
+                             pessoas_cadastradas=pessoas_cadastradas,
+                             pessoas_ignoradas=pessoas_ignoradas)
+        
+    except Exception as e:
+        flash(f'Erro ao cadastrar pessoas: {str(e)}', 'error')
+        return redirect(url_for('index'))
+
+
 # Inicialização do banco de dados (executada apenas uma vez)
 # Na Vercel, isso será executado automaticamente quando a função for chamada pela primeira vez
 def init_app():
