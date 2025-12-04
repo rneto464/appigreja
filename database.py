@@ -21,15 +21,24 @@ if USE_POSTGRES:
         
         def execute(self, query, params=None):
             """Executa query e retorna cursor compatível com SQLite"""
-            self._cursor = self.conn.cursor()
-            if params:
-                # Converter ? para %s para PostgreSQL
-                # Contar quantos ? existem e garantir que temos params suficientes
-                query_pg = query.replace('?', '%s')
-                self._cursor.execute(query_pg, params)
-            else:
-                self._cursor.execute(query)
-            return self._cursor
+            try:
+                self._cursor = self.conn.cursor()
+                if params:
+                    # Converter ? para %s para PostgreSQL
+                    # Contar quantos ? existem e garantir que temos params suficientes
+                    query_pg = query.replace('?', '%s')
+                    self._cursor.execute(query_pg, params)
+                else:
+                    self._cursor.execute(query)
+                # Garantir que retornamos o cursor, não None
+                if self._cursor is None:
+                    raise ValueError("Cursor não foi criado corretamente")
+                return self._cursor
+            except Exception as e:
+                print(f"❌ Erro no ConnectionWrapper.execute(): {e}")
+                import traceback
+                traceback.print_exc()
+                raise
         
         def commit(self):
             """Commit das alterações"""
@@ -67,6 +76,10 @@ if USE_POSTGRES:
             # Retornar wrapper para compatibilidade com SQLite
             wrapped_conn = ConnectionWrapper(raw_conn)
             print(f"✅ Conexão PostgreSQL criada e envolvida com ConnectionWrapper")
+            print(f"✅ Tipo do objeto retornado: {type(wrapped_conn).__name__}")
+            # Verificar se o wrapper tem o método execute
+            if not hasattr(wrapped_conn, 'execute'):
+                raise ValueError("ConnectionWrapper não tem método execute!")
             return wrapped_conn
         except Exception as e:
             print(f"Erro ao conectar ao PostgreSQL: {e}")

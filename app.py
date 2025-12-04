@@ -135,6 +135,12 @@ def get_db():
     print(f"🔍 get_db() retornou conexão do tipo: {conn_type}")
     print(f"🔍 USE_POSTGRES: {USE_POSTGRES}, DB_TYPE: {DB_TYPE}")
     
+    # Verificar se tem método execute (deve ter para funcionar)
+    if not hasattr(conn, 'execute'):
+        print(f"❌ ERRO: Conexão do tipo {conn_type} não tem método execute!")
+        print(f"❌ Atributos disponíveis: {dir(conn)}")
+        raise AttributeError(f"Conexão do tipo {conn_type} não tem método execute")
+    
     # Verificar se as tabelas existem (apenas para SQLite)
     if not USE_POSTGRES:
         # Para SQLite, verificar se o banco existe
