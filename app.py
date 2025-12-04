@@ -1253,15 +1253,20 @@ def gerenciar_modelos_web():
 
 @app.route('/editar_modelo/<tipo_escala>', methods=['GET'])
 def editar_modelo_web(tipo_escala):
+    from urllib.parse import unquote
+    
+    # Decodificar o tipo_escala que vem URL-encoded
+    tipo_escala_decodificado = unquote(tipo_escala)
+    
     conn = get_db()
     try:
-        # Buscar template
-        cursor = conn.execute('SELECT * FROM escala_templates WHERE tipo_escala = ?', (tipo_escala,))
+        # Buscar template usando o tipo decodificado
+        cursor = conn.execute('SELECT * FROM escala_templates WHERE tipo_escala = ?', (tipo_escala_decodificado,))
         template = cursor.fetchone()
         cursor.close()
         
         if template is None:
-            flash(f'Modelo "{tipo_escala}" não encontrado.', 'error')
+            flash(f'Modelo "{tipo_escala_decodificado}" não encontrado.', 'error')
             return redirect(url_for('gerenciar_modelos_web'))
         
         # Filtrar pessoas por grupo para cada campo
@@ -1300,6 +1305,9 @@ def editar_modelo_web(tipo_escala):
 
 @app.route('/atualizar_modelo/<tipo_escala>', methods=['POST'])
 def atualizar_modelo_web(tipo_escala):
+    from urllib.parse import unquote
+    # Decodificar o tipo_escala que vem URL-encoded
+    tipo_escala = unquote(tipo_escala)
     cerimoniarios = juntar_nomes(request.form.getlist('cerimoniarios'))
     veteranos = juntar_nomes(request.form.getlist('veteranos'))
     mirins = juntar_nomes(request.form.getlist('mirins'))
@@ -1308,7 +1316,8 @@ def atualizar_modelo_web(tipo_escala):
     tochas = juntar_nomes(request.form.getlist('tochas'))
     conn = get_db()
     try:
-        conn.execute(''' UPDATE escala_templates SET cerimoniarios_template = ?, veteranos_template = ?, mirins_template = ?, turibulo_template = ?, naveta_template = ?, tochas_template = ? WHERE tipo_escala = ? ''', (cerimoniarios, veteranos, mirins, turibulo, naveta, tochas, tipo_escala))
+        cursor = conn.execute(''' UPDATE escala_templates SET cerimoniarios_template = ?, veteranos_template = ?, mirins_template = ?, turibulo_template = ?, naveta_template = ?, tochas_template = ? WHERE tipo_escala = ? ''', (cerimoniarios, veteranos, mirins, turibulo, naveta, tochas, tipo_escala))
+        cursor.close()
         conn.commit()
         flash(f'Modelo "{tipo_escala}" atualizado com sucesso!', 'success')
     except Exception as e:
@@ -1370,9 +1379,15 @@ def exportar_mes(ano, mes):
 
 @app.route('/exportar_modelo/<tipo_escala>')
 def exportar_modelo_web(tipo_escala):
+    from urllib.parse import unquote
+    # Decodificar o tipo_escala que vem URL-encoded
+    tipo_escala = unquote(tipo_escala)
+    
     conn = get_db()
     try:
-        template = conn.execute('SELECT * FROM escala_templates WHERE tipo_escala = ?', (tipo_escala,)).fetchone()
+        cursor = conn.execute('SELECT * FROM escala_templates WHERE tipo_escala = ?', (tipo_escala,))
+        template = cursor.fetchone()
+        cursor.close()
         if not template:
             flash(f'Modelo "{tipo_escala}" não encontrado.', 'error')
             return redirect(url_for('gerenciar_modelos_web'))
