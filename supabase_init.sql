@@ -109,10 +109,42 @@ ON CONFLICT (nome) DO NOTHING;
 -- ============================================
 -- 3. INSERIR TEMPLATES DE ESCALA
 -- ============================================
+-- Os templates podem ser editados a qualquer momento pela interface web
+-- ou atualizando diretamente nesta tabela
+
+-- Template Domingo Noite (18:00)
+INSERT INTO escala_templates (tipo_escala, cerimoniarios_template, veteranos_template, mirins_template, turibulo_template, naveta_template, tochas_template) VALUES
+('Domingo Noite',
+ 'Adriano, Alejandro, Alexia, Ana Julia, André, Antony, Armando, Bernardo, Cauan, Davi Barbalho, Gabriel Carvalho, Gabriel Mendes, Helisa, João Gabriel, João Raffael, Karla, Lucas, Luiza, Maria Celida, Mariana Jansen, Mateus, Miguel, Pedro Cutrim, Pedro Reis, Rafael, Sofia Reis, Theo, Thiago Alex, Vitória',
+ 'Adriano, Alejandro, Alexia, Ana Julia, André, Antony, Armando, Bernardo, Cauan, Davi Barbalho, Gabriel Carvalho, Gabriel Mendes, Helisa, João Gabriel, João Raffael, Karla, Lucas, Luiza, Maria Celida, Mariana Jansen, Mateus, Miguel, Pedro Cutrim, Pedro Reis, Rafael, Sofia Reis, Theo, Thiago Alex, Vitória',
+ 'Adriano, Alejandro, Alexia, Ana Julia, André, Antony, Armando, Bernardo, Cauan, Davi Barbalho, Gabriel Carvalho, Gabriel Mendes, Helisa, João Gabriel, João Raffael, Karla, Lucas, Luiza, Maria Celida, Mariana Jansen, Mateus, Miguel, Pedro Cutrim, Pedro Reis, Rafael, Sofia Reis, Theo, Thiago Alex, Vitória',
+ '', '', '')
+ON CONFLICT (tipo_escala) DO UPDATE SET
+    cerimoniarios_template = EXCLUDED.cerimoniarios_template,
+    veteranos_template = EXCLUDED.veteranos_template,
+    mirins_template = EXCLUDED.mirins_template,
+    turibulo_template = EXCLUDED.turibulo_template,
+    naveta_template = EXCLUDED.naveta_template,
+    tochas_template = EXCLUDED.tochas_template;
+
+-- Template Domingo Manhã (07:00)
+INSERT INTO escala_templates (tipo_escala, cerimoniarios_template, veteranos_template, mirins_template, turibulo_template, naveta_template, tochas_template) VALUES
+('Domingo Manhã',
+ 'Adriano, Alejandro, Alexia, Ana Julia, Antony, Armando, Bernardo, Cauan, Gabriel Mendes, João Pedro, João Raffael, Karla, Mariana Jansen, Mateus, Pedro Barroso, Pedro Cutrim, Pedro Reis, Theo, Thiago Alex, Vitória',
+ 'Adriano, Alejandro, Alexia, Ana Julia, Antony, Armando, Bernardo, Cauan, Gabriel Mendes, João Pedro, João Raffael, Karla, Mariana Jansen, Mateus, Pedro Barroso, Pedro Cutrim, Pedro Reis, Theo, Thiago Alex, Vitória',
+ 'Adriano, Alejandro, Alexia, Ana Julia, Antony, Armando, Bernardo, Cauan, Gabriel Mendes, João Pedro, João Raffael, Karla, Mariana Jansen, Mateus, Pedro Barroso, Pedro Cutrim, Pedro Reis, Theo, Thiago Alex, Vitória',
+ '', '', '')
+ON CONFLICT (tipo_escala) DO UPDATE SET
+    cerimoniarios_template = EXCLUDED.cerimoniarios_template,
+    veteranos_template = EXCLUDED.veteranos_template,
+    mirins_template = EXCLUDED.mirins_template,
+    turibulo_template = EXCLUDED.turibulo_template,
+    naveta_template = EXCLUDED.naveta_template,
+    tochas_template = EXCLUDED.tochas_template;
 
 -- Template Terça
 INSERT INTO escala_templates (tipo_escala, cerimoniarios_template, veteranos_template, mirins_template, turibulo_template, naveta_template, tochas_template) VALUES
-('Terça', 
+('Terça',
  'Alejandro, André, Armando, Gabriel Carvalho, João Gabriel, Karla, Lucas, Luiza, Mariana Jansen, Mateus, Pedro Barroso, Pedro Reis, Sofia Reis',
  'Alejandro, André, Armando, Gabriel Carvalho, João Gabriel, Karla, Lucas, Luiza, Mariana Jansen, Mateus, Pedro Barroso, Pedro Reis, Sofia Reis',
  'Alejandro, André, Armando, Gabriel Carvalho, João Gabriel, Karla, Lucas, Luiza, Mariana Jansen, Mateus, Pedro Barroso, Pedro Reis, Sofia Reis',
@@ -140,82 +172,13 @@ ON CONFLICT (tipo_escala) DO UPDATE SET
     naveta_template = EXCLUDED.naveta_template,
     tochas_template = EXCLUDED.tochas_template;
 
--- Template Turibulo
+-- Template Demais Dias da Semana (Segunda, Quarta, Sexta, Sábado)
 INSERT INTO escala_templates (tipo_escala, cerimoniarios_template, veteranos_template, mirins_template, turibulo_template, naveta_template, tochas_template) VALUES
-('Turibulo',
- '',
- '',
- '',
- 'Armando, Karla, Mateus, Alejandro, João Pedro, Pedro Reis, Adriano, Lucas, André, Pedro Barroso, Ana Julia',
- '', '')
-ON CONFLICT (tipo_escala) DO UPDATE SET
-    cerimoniarios_template = EXCLUDED.cerimoniarios_template,
-    veteranos_template = EXCLUDED.veteranos_template,
-    mirins_template = EXCLUDED.mirins_template,
-    turibulo_template = EXCLUDED.turibulo_template,
-    naveta_template = EXCLUDED.naveta_template,
-    tochas_template = EXCLUDED.tochas_template;
-
--- Template Naveta
-INSERT INTO escala_templates (tipo_escala, cerimoniarios_template, veteranos_template, mirins_template, turibulo_template, naveta_template, tochas_template) VALUES
-('Naveta',
- '',
- '',
- '',
- '',
- 'João Gabriel, Luiza, Miguel, Rafael, Antony, Maria Celida, Cauan, Theo, Alexia, Davi Barbalho, Helisa, Thiago Alex, Gabriel Carvalho, Mariana Jansen, Bernardo, Sofia Reis, João Raffael, Pedro Cutrim, Gabriel Mendes',
- '')
-ON CONFLICT (tipo_escala) DO UPDATE SET
-    cerimoniarios_template = EXCLUDED.cerimoniarios_template,
-    veteranos_template = EXCLUDED.veteranos_template,
-    mirins_template = EXCLUDED.mirins_template,
-    turibulo_template = EXCLUDED.turibulo_template,
-    naveta_template = EXCLUDED.naveta_template,
-    tochas_template = EXCLUDED.tochas_template;
-
--- Template Tochas
-INSERT INTO escala_templates (tipo_escala, cerimoniarios_template, veteranos_template, mirins_template, turibulo_template, naveta_template, tochas_template) VALUES
-('Tochas',
- '',
- '',
- '',
- '',
- '',
- 'Alejandro, João Pedro, Pedro Reis, Adriano, Lucas, André, Pedro Barroso, Ana Julia, Vitória, Sofia Reis, Armando, Karla, Mateus, João Raffael, Pedro Cutrim, Gabriel Mendes, João Gabriel, Luiza, Miguel, Rafael')
-ON CONFLICT (tipo_escala) DO UPDATE SET
-    cerimoniarios_template = EXCLUDED.cerimoniarios_template,
-    veteranos_template = EXCLUDED.veteranos_template,
-    mirins_template = EXCLUDED.mirins_template,
-    turibulo_template = EXCLUDED.turibulo_template,
-    naveta_template = EXCLUDED.naveta_template,
-    tochas_template = EXCLUDED.tochas_template;
-
--- Template Domingo Manhã (07:00)
-INSERT INTO escala_templates (tipo_escala, cerimoniarios_template, veteranos_template, mirins_template, turibulo_template, naveta_template, tochas_template) VALUES
-('Domingo Manhã',
- 'Adriano, Alejandro, Alexia, Ana Julia, Antony, Armando, Bernardo, Cauan, Davi Barbalho, Gabriel Carvalho, Gabriel Mendes, Helisa, João Gabriel, João Raffael, Karla, Lucas, Luiza, Maria Celida, Mariana Jansen, Mateus, Miguel, Pedro Cutrim, Pedro Reis, Rafael, Sofia Reis, Theo, Thiago Alex, Vitória',
- 'Adriano, Alejandro, Alexia, Ana Julia, Antony, Armando, Bernardo, Cauan, Davi Barbalho, Gabriel Carvalho, Gabriel Mendes, Helisa, João Gabriel, João Raffael, Karla, Lucas, Luiza, Maria Celida, Mariana Jansen, Mateus, Miguel, Pedro Cutrim, Pedro Reis, Rafael, Sofia Reis, Theo, Thiago Alex, Vitória',
- 'Adriano, Alejandro, Alexia, Ana Julia, Antony, Armando, Bernardo, Cauan, Davi Barbalho, Gabriel Carvalho, Gabriel Mendes, Helisa, João Gabriel, João Raffael, Karla, Lucas, Luiza, Maria Celida, Mariana Jansen, Mateus, Miguel, Pedro Cutrim, Pedro Reis, Rafael, Sofia Reis, Theo, Thiago Alex, Vitória',
- 'Armando, Karla, Mateus, Alejandro, João Pedro, Pedro Reis, Adriano, Lucas, André, Pedro Barroso, Ana Julia',
- 'João Gabriel, Luiza, Miguel, Rafael, Antony, Maria Celida, Cauan, Theo, Alexia, Davi Barbalho, Helisa, Thiago Alex, Gabriel Carvalho, Mariana Jansen, Bernardo, Sofia Reis, João Raffael, Pedro Cutrim, Gabriel Mendes',
- 'Alejandro, João Pedro, Pedro Reis, Adriano, Lucas, André, Pedro Barroso, Ana Julia, Vitória, Sofia Reis, Armando, Karla, Mateus, João Raffael, Pedro Cutrim, Gabriel Mendes, João Gabriel, Luiza, Miguel, Rafael')
-ON CONFLICT (tipo_escala) DO UPDATE SET
-    cerimoniarios_template = EXCLUDED.cerimoniarios_template,
-    veteranos_template = EXCLUDED.veteranos_template,
-    mirins_template = EXCLUDED.mirins_template,
-    turibulo_template = EXCLUDED.turibulo_template,
-    naveta_template = EXCLUDED.naveta_template,
-    tochas_template = EXCLUDED.tochas_template;
-
--- Template Domingo Noite (18:00)
-INSERT INTO escala_templates (tipo_escala, cerimoniarios_template, veteranos_template, mirins_template, turibulo_template, naveta_template, tochas_template) VALUES
-('Domingo Noite',
- 'Adriano, Alejandro, Alexia, Ana Julia, André, Antony, Armando, Bernardo, Cauan, Davi Barbalho, Gabriel Carvalho, Gabriel Mendes, Helisa, João Gabriel, João Raffael, Karla, Lucas, Luiza, Maria Celida, Mariana Jansen, Mateus, Miguel, Pedro Cutrim, Pedro Reis, Rafael, Sofia Reis, Theo, Thiago Alex, Vitória',
- 'Adriano, Alejandro, Alexia, Ana Julia, André, Antony, Armando, Bernardo, Cauan, Davi Barbalho, Gabriel Carvalho, Gabriel Mendes, Helisa, João Gabriel, João Raffael, Karla, Lucas, Luiza, Maria Celida, Mariana Jansen, Mateus, Miguel, Pedro Cutrim, Pedro Reis, Rafael, Sofia Reis, Theo, Thiago Alex, Vitória',
- 'Adriano, Alejandro, Alexia, Ana Julia, André, Antony, Armando, Bernardo, Cauan, Davi Barbalho, Gabriel Carvalho, Gabriel Mendes, Helisa, João Gabriel, João Raffael, Karla, Lucas, Luiza, Maria Celida, Mariana Jansen, Mateus, Miguel, Pedro Cutrim, Pedro Reis, Rafael, Sofia Reis, Theo, Thiago Alex, Vitória',
- 'Armando, Karla, Mateus, Alejandro, João Pedro, Pedro Reis, Adriano, Lucas, André, Pedro Barroso, Ana Julia',
- 'João Gabriel, Luiza, Miguel, Rafael, Antony, Maria Celida, Cauan, Theo, Alexia, Davi Barbalho, Helisa, Thiago Alex, Gabriel Carvalho, Mariana Jansen, Bernardo, Sofia Reis, João Raffael, Pedro Cutrim, Gabriel Mendes',
- 'Alejandro, João Pedro, Pedro Reis, Adriano, Lucas, André, Pedro Barroso, Ana Julia, Vitória, Sofia Reis, Armando, Karla, Mateus, João Raffael, Pedro Cutrim, Gabriel Mendes, João Gabriel, Luiza, Miguel, Rafael')
+('Demais Dias',
+ 'Adriano, Alejandro, André, Armando, Davi Barbalho, Gabriel Carvalho, Helisa, João Gabriel, Karla, Lucas, Luiza, Mateus, Pedro Reis',
+ 'Adriano, Alejandro, André, Armando, Davi Barbalho, Gabriel Carvalho, Helisa, João Gabriel, Karla, Lucas, Luiza, Mateus, Pedro Reis',
+ 'Adriano, Alejandro, André, Armando, Davi Barbalho, Gabriel Carvalho, Helisa, João Gabriel, Karla, Lucas, Luiza, Mateus, Pedro Reis',
+ '', '', '')
 ON CONFLICT (tipo_escala) DO UPDATE SET
     cerimoniarios_template = EXCLUDED.cerimoniarios_template,
     veteranos_template = EXCLUDED.veteranos_template,
