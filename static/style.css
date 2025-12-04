@@ -541,11 +541,12 @@ button:hover, .button-link:hover, .edit-button:hover { background-color: #3b82f6
   padding: 0;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   max-width: 600px;
-  max-height: 90vh;
-  margin: 5vh auto;
+  max-height: 85vh;
+  margin: 7.5vh auto;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  width: 90%;
 }
 
 .modal-header {

@@ -592,8 +592,16 @@
                                eventEl.title = event.extendedProps.description.replace(/<br>/g, '\n').replace(/<b>/g, '').replace(/<\/b>/g, '');
                             }
                             
-                            // Adicionar evento de clique para redirecionar para editar escala
-                            if (!isViewOnly && event.id) {
+                            // Adicionar evento de clique para mostrar modal ou editar escala
+                            if (isViewOnly) {
+                                // Modo visualização: mostrar modal com o evento específico
+                                eventEl.style.cursor = 'pointer';
+                                eventEl.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    showEventModal(event, day, month, year);
+                                });
+                            } else if (event.id) {
+                                // Modo edição: redirecionar para editar escala
                                 eventEl.style.cursor = 'pointer';
                                 eventEl.addEventListener('click', (e) => {
                                     e.stopPropagation();
@@ -605,19 +613,20 @@
                         });
                     }
                     
+                    // Clique na célula do dia (quando não clica diretamente no evento)
                     dayCell.addEventListener('click', (e) => {
+                        // Se clicou em um evento, o evento já foi tratado acima
                         if (e.target.closest('.calendar-event')) {
-                            if (isViewOnly && eventsOnDay.length > 0) {
-                                showEventModal(eventsOnDay[0], day, month, year);
-                            }
                             return;
                         }
+                        // Se há eventos e está em modo visualização, mostrar o primeiro
                         if (isViewOnly) {
                             if (eventsOnDay.length > 0) {
                                 showEventModal(eventsOnDay[0], day, month, year);
                             }
                         } else {
-                                window.location.href = `/adicionar_escala/${year}/${month}/${day}`;
+                            // Modo edição: adicionar nova escala
+                            window.location.href = `/adicionar_escala/${year}/${month}/${day}`;
                         }
                     });
                     
