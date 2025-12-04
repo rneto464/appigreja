@@ -46,6 +46,7 @@ vercel --prod
 
 Configure na dashboard da Vercel:
 
+**1. SECRET_KEY (obrigatória):**
 ```
 SECRET_KEY=sua_chave_secreta_aqui
 ```
@@ -54,6 +55,18 @@ SECRET_KEY=sua_chave_secreta_aqui
 ```bash
 python -c "import secrets; print(secrets.token_hex(32))"
 ```
+
+**2. Google Calendar API (opcional, para integração com Google Calendar):**
+```
+GOOGLE_CLIENT_ID=seu_client_id_aqui
+GOOGLE_CLIENT_SECRET=seu_client_secret_aqui
+GOOGLE_PROJECT_ID=escala-coroinhas-app
+PRODUCTION_URL=https://seu-app.vercel.app
+```
+
+⚠️ **Substitua** pelos valores reais das suas credenciais do Google.
+
+📖 **Veja mais detalhes em**: [CONFIGURAR_GOOGLE.md](./CONFIGURAR_GOOGLE.md)
 
 ### Banco de Dados ⚠️
 
