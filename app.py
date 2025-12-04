@@ -118,6 +118,14 @@ def contar_membros(campo):
 
 # --- Funções do Banco de Dados ---
 def get_db():
+    # Garantir que o diretório do banco existe
+    db_dir = os.path.dirname(DATABASE)
+    if db_dir and not os.path.exists(db_dir):
+        try:
+            os.makedirs(db_dir, exist_ok=True)
+        except Exception as e:
+            print(f"Erro ao criar diretório do banco: {e}")
+    
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
