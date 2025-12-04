@@ -37,10 +37,10 @@ venv.bak/
 .DS_Store
 
 # Banco de dados
-*.db
-*.sqlite
-*.sqlite3
-dados_escala.db
+# *.db
+# *.sqlite
+# *.sqlite3
+# dados_escala.db - Comentado para versionar o banco inicial com pessoas cadastradas
 
 # Arquivos Excel
 *.xlsx
