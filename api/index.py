@@ -15,14 +15,15 @@ sys.path.insert(0, parent_dir)
 # Detectar se estamos na Vercel
 IS_VERCEL = bool(os.environ.get('VERCEL') or os.environ.get('VERCEL_ENV'))
 
-# Na Vercel, usar /tmp para o banco de dados (único diretório gravável)
+# Na Vercel, se não houver MySQL configurado, usar /tmp para SQLite
 # IMPORTANTE: Definir ANTES de importar app.py
-if IS_VERCEL:
-    # Estamos na Vercel, usar /tmp para o banco
+if IS_VERCEL and not (os.environ.get('MYSQL_HOST') or os.environ.get('DATABASE_URL')):
+    # Estamos na Vercel sem MySQL, usar /tmp para SQLite (não recomendado para produção)
     db_path = '/tmp/dados_escala.db'
     os.environ['DATABASE_PATH'] = db_path
-else:
-    # Desenvolvimento local
+    print("⚠️ AVISO: Usando SQLite em /tmp. Configure MySQL para produção!")
+elif not IS_VERCEL:
+    # Desenvolvimento local - SQLite
     db_path = os.path.join(parent_dir, 'dados_escala.db')
     os.environ['DATABASE_PATH'] = db_path
 

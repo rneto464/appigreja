@@ -1,12 +1,15 @@
 import random
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
-import sqlite3
 import os
 import pandas as pd
 from calendar import monthrange
 import io
 import json
+from database import (
+    get_db_connection, create_tables, USE_MYSQL, DB_TYPE,
+    IntegrityError, OperationalError, build_date_filter_query
+)
 # xlsxwriter é usado como engine do pandas, não precisa importar diretamente
 
 # --- Configurações do Flask ---
@@ -21,9 +24,9 @@ app = Flask(__name__,
             template_folder=TEMPLATES_DIR)
 # Chave secreta - em produção, usar variável de ambiente
 app.secret_key = os.environ.get('SECRET_KEY', 'sua_chave_secreta_aqui_altere_em_producao')
-# Na Vercel, usar /tmp para o banco (único diretório gravável)
-# Permitir override via variável de ambiente
-DATABASE = os.environ.get('DATABASE_PATH', os.path.join(BASE_DIR, 'dados_escala.db'))
+# Configuração de banco de dados
+# Se MYSQL_HOST ou DATABASE_URL estiver definido, usa MySQL
+# Caso contrário, usa SQLite para desenvolvimento local
 EXCEL_FILE = os.path.join(BASE_DIR, 'BASE DE DADOS COROINHAS.xlsx')
 
 # --- GRUPOS E TIPOS DE ESCALA (PADRONIZADO) ---
@@ -124,57 +127,39 @@ def contar_membros(campo):
 
 # --- Funções do Banco de Dados ---
 def get_db():
-    # Garantir que o diretório do banco existe
-    db_dir = os.path.dirname(DATABASE)
-    if db_dir and not os.path.exists(db_dir):
-        try:
-            os.makedirs(db_dir, exist_ok=True)
-        except Exception as e:
-            print(f"Erro ao criar diretório do banco: {e}")
+    """Obtém conexão com o banco de dados (MySQL ou SQLite)"""
+    conn = get_db_connection()
     
-    # Se o banco não existe, criar e inicializar
-    if not os.path.exists(DATABASE):
-        try:
-            # Criar conexão diretamente para evitar recursão
-            conn = sqlite3.connect(DATABASE)
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            
-            # Criar tabelas diretamente
-            cursor.execute(''' CREATE TABLE IF NOT EXISTS escalas ( id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT NOT NULL, tipo_escala TEXT NOT NULL, bata_cor TEXT, cerimoniarios TEXT, veteranos TEXT, mirins TEXT, turibulo TEXT, naveta TEXT, tochas TEXT ) ''')
-            cursor.execute(''' CREATE TABLE IF NOT EXISTS pessoas ( id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL UNIQUE, grupo TEXT NOT NULL, funcoes TEXT ) ''')
-            cursor.execute(''' CREATE TABLE IF NOT EXISTS escala_templates ( id INTEGER PRIMARY KEY AUTOINCREMENT, tipo_escala TEXT NOT NULL UNIQUE, cerimoniarios_template TEXT, veteranos_template TEXT, mirins_template TEXT, turibulo_template TEXT, naveta_template TEXT, tochas_template TEXT ) ''')
-            cursor.execute(''' CREATE TABLE IF NOT EXISTS dias_missa ( id INTEGER PRIMARY KEY AUTOINCREMENT, dia_semana INTEGER NOT NULL, tipo_escala TEXT NOT NULL, horario TEXT, ativo INTEGER DEFAULT 1, ordem INTEGER DEFAULT 0 ) ''')
-            conn.commit()
-            conn.close()
-            
-            # Popular dados iniciais
-            with app.app_context():
-                popular_templates_iniciais()
-                popular_dias_missa_iniciais()
-            print(f"Banco de dados criado em: {DATABASE}")
-        except Exception as e:
-            print(f"Erro ao criar banco de dados: {e}")
-            import traceback
-            traceback.print_exc()
+    # Verificar se as tabelas existem (apenas para SQLite)
+    if not USE_MYSQL:
+        # Para SQLite, verificar se o banco existe
+        database_path = os.environ.get('DATABASE_PATH', 'dados_escala.db')
+        if not os.path.exists(database_path):
+            # Criar tabelas na primeira vez
+            try:
+                create_tables(conn)
+                with app.app_context():
+                    popular_templates_iniciais()
+                    popular_dias_missa_iniciais()
+                print(f"Banco de dados {DB_TYPE} criado e inicializado")
+            except Exception as e:
+                print(f"Erro ao criar banco de dados: {e}")
+                import traceback
+                traceback.print_exc()
     
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
     return conn
 
 def init_db():
     """Inicializa o banco de dados criando as tabelas se não existirem"""
-    # Criar conexão diretamente para evitar recursão com get_db()
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute(''' CREATE TABLE IF NOT EXISTS escalas ( id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT NOT NULL, tipo_escala TEXT NOT NULL, bata_cor TEXT, cerimoniarios TEXT, veteranos TEXT, mirins TEXT, turibulo TEXT, naveta TEXT, tochas TEXT ) ''')
-    cursor.execute(''' CREATE TABLE IF NOT EXISTS pessoas ( id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL UNIQUE, grupo TEXT NOT NULL, funcoes TEXT ) ''')
-    cursor.execute(''' CREATE TABLE IF NOT EXISTS escala_templates ( id INTEGER PRIMARY KEY AUTOINCREMENT, tipo_escala TEXT NOT NULL UNIQUE, cerimoniarios_template TEXT, veteranos_template TEXT, mirins_template TEXT, turibulo_template TEXT, naveta_template TEXT, tochas_template TEXT ) ''')
-    cursor.execute(''' CREATE TABLE IF NOT EXISTS dias_missa ( id INTEGER PRIMARY KEY AUTOINCREMENT, dia_semana INTEGER NOT NULL, tipo_escala TEXT NOT NULL, horario TEXT, ativo INTEGER DEFAULT 1, ordem INTEGER DEFAULT 0 ) ''')
-    conn.commit()
-    conn.close()
-    print("Banco de dados inicializado/verificado.")
+    conn = get_db_connection()
+    try:
+        create_tables(conn)
+        print(f"Banco de dados {DB_TYPE} inicializado/verificado.")
+    except Exception as e:
+        print(f"Erro ao inicializar banco de dados: {e}")
+        raise
+    finally:
+        conn.close()
 
 def popular_templates_iniciais():
     with app.app_context():
@@ -324,7 +309,9 @@ def gerar_escala_para_mes(mes, ano):
         if ano < 2000 or ano > 2100:
             raise ValueError(f"Ano inválido: {ano}. Deve ser entre 2000 e 2100.")
         
-        cursor.execute("DELETE FROM escalas WHERE strftime('%m', substr(data, 7, 4) || '-' || substr(data, 4, 2) || '-' || substr(data, 1, 2)) = ? AND strftime('%Y', substr(data, 7, 4) || '-' || substr(data, 4, 2) || '-' || substr(data, 1, 2)) = ?", (f"{mes:02d}", str(ano)))
+        # Deletar escalas do mês/ano usando função compatível
+        date_filter, date_params = build_date_filter_query(mes, ano)
+        cursor.execute(f"DELETE FROM escalas {date_filter}", date_params)
 
         templates = {row['tipo_escala']: row for row in cursor.execute('SELECT * FROM escala_templates').fetchall()}
         pessoas_e_grupos = {row['nome']: row['grupo'] for row in cursor.execute('SELECT nome, grupo FROM pessoas').fetchall()}
@@ -359,7 +346,7 @@ def gerar_escala_para_mes(mes, ano):
         
         try:
             dias_missa_config = cursor.execute('SELECT * FROM dias_missa WHERE ativo = 1 ORDER BY ordem').fetchall()
-        except sqlite3.OperationalError:
+        except OperationalError:
             # Tabela pode não existir ainda, usar configuração padrão
             print("Tabela dias_missa não encontrada, usando configuração padrão.")
             dias_missa_config = []
@@ -654,8 +641,9 @@ def index():
 
     conn = get_db()
     todas_as_pessoas = conn.execute("SELECT nome FROM pessoas ORDER BY nome").fetchall()
-    query = "SELECT * FROM escalas WHERE strftime('%m', substr(data, 7, 4) || '-' || substr(data, 4, 2) || '-' || substr(data, 1, 2)) = ? AND strftime('%Y', substr(data, 7, 4) || '-' || substr(data, 4, 2) || '-' || substr(data, 1, 2)) = ?"
-    params = [f"{mes:02d}", str(ano)]
+    date_filter, date_params = build_date_filter_query(mes, ano)
+    query = f"SELECT * FROM escalas {date_filter}"
+    params = list(date_params)
 
     if filtro_nome:
         query += " AND (cerimoniarios LIKE ? OR veteranos LIKE ? OR mirins LIKE ? OR turibulo LIKE ? OR naveta LIKE ? OR tochas LIKE ?)"
@@ -804,8 +792,9 @@ def visualizar_escala():
     conn = get_db()
     todas_as_pessoas = conn.execute("SELECT nome FROM pessoas ORDER BY nome").fetchall()
 
-    query = "SELECT * FROM escalas WHERE strftime('%m', substr(data, 7, 4) || '-' || substr(data, 4, 2) || '-' || substr(data, 1, 2)) = ? AND strftime('%Y', substr(data, 7, 4) || '-' || substr(data, 4, 2) || '-' || substr(data, 1, 2)) = ?"
-    params = [f"{mes:02d}", str(ano)]
+    date_filter, date_params = build_date_filter_query(mes, ano)
+    query = f"SELECT * FROM escalas {date_filter}"
+    params = list(date_params)
     if filtro_nome:
         query += " AND (cerimoniarios LIKE ? OR veteranos LIKE ? OR mirins LIKE ? OR turibulo LIKE ? OR naveta LIKE ? OR tochas LIKE ?)"
         for _ in range(6):
@@ -1002,7 +991,7 @@ def adicionar_pessoa_web():
             conn.execute('INSERT INTO pessoas (nome, grupo, funcoes) VALUES (?, ?, ?)', (nome, grupo, funcoes))
             conn.commit()
             flash(f'"{nome}" adicionado(a) com sucesso!', 'success')
-        except sqlite3.IntegrityError:
+        except IntegrityError:
             flash(f'Erro: Já existe uma pessoa com o nome "{nome}".', 'error')
         finally:
             conn.close()
@@ -1305,9 +1294,10 @@ def atualizar_modelo_web(tipo_escala):
 def exportar_mes(ano, mes):
     conn = get_db()
     try:
+        date_filter, date_params = build_date_filter_query(mes, ano)
         escalas_db = conn.execute(
-            "SELECT * FROM escalas WHERE strftime('%m', substr(data, 7, 4) || '-' || substr(data, 4, 2) || '-' || substr(data, 1, 2)) = ? AND strftime('%Y', substr(data, 7, 4) || '-' || substr(data, 4, 2) || '-' || substr(data, 1, 2)) = ? ORDER BY data, tipo_escala",
-            (f"{mes:02d}", str(ano))
+            f"SELECT * FROM escalas {date_filter} ORDER BY data, tipo_escala",
+            date_params
         ).fetchall()
     finally:
         conn.close()
@@ -1405,8 +1395,9 @@ def limpar_mes_web():
         conn = get_db()
         try:
             # Contar quantas escalas serão removidas
-            count_query = "SELECT COUNT(*) as total FROM escalas WHERE strftime('%m', substr(data, 7, 4) || '-' || substr(data, 4, 2) || '-' || substr(data, 1, 2)) = ? AND strftime('%Y', substr(data, 7, 4) || '-' || substr(data, 4, 2) || '-' || substr(data, 1, 2)) = ?"
-            count_result = conn.execute(count_query, (f"{mes:02d}", str(ano))).fetchone()
+            date_filter, date_params = build_date_filter_query(mes, ano)
+            count_query = f"SELECT COUNT(*) as total FROM escalas {date_filter}"
+            count_result = conn.execute(count_query, date_params).fetchone()
             total_escalas = count_result['total'] if count_result else 0
             
             if total_escalas == 0:
@@ -1414,7 +1405,8 @@ def limpar_mes_web():
                 return redirect(url_for('index', mes=mes, ano=ano))
             
             # Deletar as escalas
-            conn.execute("DELETE FROM escalas WHERE strftime('%m', substr(data, 7, 4) || '-' || substr(data, 4, 2) || '-' || substr(data, 1, 2)) = ? AND strftime('%Y', substr(data, 7, 4) || '-' || substr(data, 4, 2) || '-' || substr(data, 1, 2)) = ?", (f"{mes:02d}", str(ano)))
+            date_filter, date_params = build_date_filter_query(mes, ano)
+            conn.execute(f"DELETE FROM escalas {date_filter}", date_params)
             conn.commit()
             flash(f"Todas as {total_escalas} escala(s) do mês {mes}/{ano} foram apagadas com sucesso.", 'success')
         except Exception as e:
@@ -1538,9 +1530,10 @@ def contar_frequencia_no_mes(mes, ano):
     Retorna um dicionário {'Nome': contagem}.
     """
     conn = get_db()
+    date_filter, date_params = build_date_filter_query(mes, ano)
     escalas = conn.execute(
-        "SELECT * FROM escalas WHERE strftime('%m', substr(data, 7, 4) || '-' || substr(data, 4, 2) || '-' || substr(data, 1, 2)) = ? AND strftime('%Y', substr(data, 7, 4) || '-' || substr(data, 4, 2) || '-' || substr(data, 1, 2)) = ?",
-        (f"{mes:02d}", str(ano))
+        f"SELECT * FROM escalas {date_filter}",
+        date_params
     ).fetchall()
     conn.close()
 
@@ -1632,7 +1625,7 @@ def cadastrar_pessoas():
                         )
                         pessoas_cadastradas.append(f"'{nome_limpo}' cadastrado(a) no grupo '{grupo}'")
                         total_cadastrados += 1
-                    except sqlite3.IntegrityError:
+                    except IntegrityError:
                         pessoas_ignoradas.append(f"Erro ao cadastrar '{nome_limpo}' (pode já existir)")
                         total_ignorados += 1
         
@@ -1703,7 +1696,7 @@ def init_app():
                                 (nome_limpo, grupo, '')
                             )
                             total += 1
-                        except sqlite3.IntegrityError:
+                        except IntegrityError:
                             pass  # Já existe
                 db.commit()
                 db.close()

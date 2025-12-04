@@ -27,6 +27,10 @@ idna==3.10
 urllib3==2.4.0
 requests==2.32.3
 
+# MySQL
+PyMySQL==1.1.0
+cryptography==43.0.3
+
 # Outros
 six==1.17.0
 packaging==25.0
