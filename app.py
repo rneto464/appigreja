@@ -1711,10 +1711,7 @@ if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
 else:
     # Em ambiente serverless (Vercel), inicializar na primeira importação
-    # Mas apenas se o banco não existir ainda
-    if not os.path.exists(DATABASE):
-        try:
-            init_app()
-        except Exception as e:
-            print(f"AVISO: Erro ao inicializar banco na primeira importação: {e}")
+    # A inicialização será feita automaticamente quando get_db() for chamado
+    # Não precisamos inicializar aqui pois pode causar problemas com MySQL
+    pass
             print("O banco será inicializado na primeira requisição.")
