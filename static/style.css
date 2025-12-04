@@ -1854,6 +1854,8 @@ button:hover, .button-link:hover, .edit-button:hover { background-color: #3b82f6
   margin-top: 20px;
   padding-top: 20px;
   border-top: 2px solid #4b5563;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .btn-edit-schedule,
@@ -1869,6 +1871,10 @@ button:hover, .button-link:hover, .edit-button:hover { background-color: #3b82f6
   border: none;
   cursor: pointer;
   font-size: 0.95em;
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .btn-edit-schedule {
@@ -1938,12 +1944,19 @@ button:hover, .button-link:hover, .edit-button:hover { background-color: #3b82f6
 
   .schedule-actions {
     flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 15px;
   }
 
   .btn-edit-schedule,
   .btn-remove-schedule {
     width: 100%;
+    max-width: 100%;
     justify-content: center;
+    box-sizing: border-box;
+    padding: 10px 16px;
+    flex: 1 1 auto;
   }
 }
 
@@ -2665,12 +2678,20 @@ button:hover, .button-link:hover, .edit-button:hover { background-color: #3b82f6
   .schedule-actions {
     flex-direction: column;
     gap: 10px;
+    margin-top: 15px;
+    padding-top: 15px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .btn-edit-schedule,
   .btn-remove-schedule {
     width: 100%;
+    max-width: 100%;
     justify-content: center;
+    box-sizing: border-box;
+    padding: 10px 16px;
+    flex: 1 1 auto;
   }
 
   /* Formulários de Edição */
