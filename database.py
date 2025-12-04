@@ -60,14 +60,18 @@ if USE_POSTGRES:
             
             # Parse DATABASE_URL se necessário
             # Supabase já fornece no formato correto: postgresql://user:pass@host:port/db
-            conn = psycopg2.connect(
+            raw_conn = psycopg2.connect(
                 database_url,
                 cursor_factory=RealDictCursor
             )
             # Retornar wrapper para compatibilidade com SQLite
-            return ConnectionWrapper(conn)
+            wrapped_conn = ConnectionWrapper(raw_conn)
+            print(f"✅ Conexão PostgreSQL criada e envolvida com ConnectionWrapper")
+            return wrapped_conn
         except Exception as e:
             print(f"Erro ao conectar ao PostgreSQL: {e}")
+            import traceback
+            traceback.print_exc()
             raise
     
     def get_row_factory():

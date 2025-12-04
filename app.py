@@ -127,8 +127,13 @@ def contar_membros(campo):
 
 # --- Funções do Banco de Dados ---
 def get_db():
-    """Obtém conexão com o banco de dados (MySQL ou SQLite)"""
+    """Obtém conexão com o banco de dados (PostgreSQL ou SQLite)"""
     conn = get_db_connection()
+    
+    # Debug: verificar tipo de conexão
+    conn_type = type(conn).__name__
+    print(f"🔍 get_db() retornou conexão do tipo: {conn_type}")
+    print(f"🔍 USE_POSTGRES: {USE_POSTGRES}, DB_TYPE: {DB_TYPE}")
     
     # Verificar se as tabelas existem (apenas para SQLite)
     if not USE_POSTGRES:
