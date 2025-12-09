@@ -515,17 +515,19 @@ def gerar_escala_para_mes(mes, ano):
                 mirins_aptos = candidatos_mir_modelo if candidatos_mir_modelo else [nome for nome in todas_pessoas_nomes if pessoas_e_grupos.get(nome) == GRUPO_MIRINS]
                 
                 # Para funções especiais:
-                # - Se for evento especial OU domingo OU solenidade: usar candidatos do template ou todas as pessoas
-                # - Se for dia de semana normal: usar apenas se o template tiver candidatos configurados
-                if is_evento_especial or is_domingo or is_solenidade:
-                    turibulo_aptos = candidatos_turib_modelo if candidatos_turib_modelo else todas_pessoas_nomes
-                    naveta_aptos = candidatos_nav_modelo if candidatos_nav_modelo else todas_pessoas_nomes
-                    tochas_aptos = candidatos_tochas_modelo if candidatos_tochas_modelo else todas_pessoas_nomes
-                else:
-                    # Dia de semana normal: só usar se o template tiver candidatos configurados
-                    turibulo_aptos = candidatos_turib_modelo  # Pode ser lista vazia
-                    naveta_aptos = candidatos_nav_modelo  # Pode ser lista vazia
-                    tochas_aptos = candidatos_tochas_modelo  # Pode ser lista vazia
+                # - Se houver candidatos no template, usar apenas esses candidatos
+                # - Se não houver candidatos no template, usar apenas pessoas que tenham a função cadastrada no campo 'funcoes'
+                # - NUNCA usar todas as pessoas como fallback
+                
+                # Filtrar pessoas que têm a função específica cadastrada
+                pessoas_com_turibulo = [nome for nome in todas_pessoas_nomes if 'turibulo' in pessoas_e_funcoes.get(nome, set())]
+                pessoas_com_naveta = [nome for nome in todas_pessoas_nomes if 'naveta' in pessoas_e_funcoes.get(nome, set())]
+                pessoas_com_tochas = [nome for nome in todas_pessoas_nomes if 'tochas' in pessoas_e_funcoes.get(nome, set())]
+                
+                # Usar candidatos do template se existirem, senão usar apenas pessoas com a função cadastrada
+                turibulo_aptos = candidatos_turib_modelo if candidatos_turib_modelo else pessoas_com_turibulo
+                naveta_aptos = candidatos_nav_modelo if candidatos_nav_modelo else pessoas_com_naveta
+                tochas_aptos = candidatos_tochas_modelo if candidatos_tochas_modelo else pessoas_com_tochas
                 
                 # Garantir que apenas pessoas que existem no banco sejam consideradas
                 cerimoniarios_aptos = [nome for nome in cerimoniarios_aptos if nome in pessoas_e_grupos]
