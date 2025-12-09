@@ -1620,12 +1620,80 @@ def relatorio_frequencia_web():
     ano = int(request.args.get('ano', hoje.year))
 
     frequencia = contar_frequencia_no_mes(mes, ano)
+    
+    # Buscar informações das pessoas (grupo)
+    conn = get_db()
+    try:
+        pessoas_info = {}
+        pessoas_rows = conn.execute('SELECT nome, grupo FROM pessoas').fetchall()
+        for row in pessoas_rows:
+            pessoas_info[row['nome']] = row['grupo']
+    finally:
+        conn.close()
+    
+    # Organizar por grupos
+    frequencia_por_grupo = {
+        'cerimoniario': [],
+        'veterano': [],
+        'mirins': []
+    }
+    
+    # Separar pessoas que serviram e que não serviram
+    todas_pessoas = set(pessoas_info.keys())
+    pessoas_que_serviram = set(frequencia.keys())
+    pessoas_que_nao_serviram = todas_pessoas - pessoas_que_serviram
+    
+    # Adicionar pessoas que não serviram com contagem 0
+    for nome in pessoas_que_nao_serviram:
+        frequencia[nome] = 0
+    
+    # Organizar por grupo
+    for nome, contagem in frequencia.items():
+        grupo = pessoas_info.get(nome, 'mirins')
+        if grupo == 'cerimoniario':
+            frequencia_por_grupo['cerimoniario'].append((nome, contagem))
+        elif grupo == 'veterano':
+            frequencia_por_grupo['veterano'].append((nome, contagem))
+        else:
+            frequencia_por_grupo['mirins'].append((nome, contagem))
+    
+    # Ordenar cada grupo por contagem (decrescente)
+    for grupo in frequencia_por_grupo:
+        frequencia_por_grupo[grupo].sort(key=lambda x: x[1], reverse=True)
+    
+    # Estatísticas gerais
+    total_pessoas = len(frequencia)
+    total_servicos = sum(frequencia.values())
+    media_servicos = total_servicos / total_pessoas if total_pessoas > 0 else 0
+    
+    # Agrupar por quantidade de serviços
+    serviram_0 = [nome for nome, count in frequencia.items() if count == 0]
+    serviram_1 = [nome for nome, count in frequencia.items() if count == 1]
+    serviram_2 = [nome for nome, count in frequencia.items() if count == 2]
+    serviram_3_ou_mais = [(nome, count) for nome, count in frequencia.items() if count >= 3]
+    
+    # Ordenar todas as pessoas por contagem (decrescente)
     frequencia_ordenada = sorted(frequencia.items(), key=lambda item: item[1], reverse=True)
+    
+    # Nome do mês
+    meses_nomes = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+    mes_nome = meses_nomes[mes] if 1 <= mes <= 12 else f'Mês {mes}'
 
     return render_template('relatorio.html',
                            mes=mes,
                            ano=ano,
-                           frequencia=frequencia_ordenada)
+                           mes_nome=mes_nome,
+                           frequencia=frequencia_ordenada,
+                           frequencia_por_grupo=frequencia_por_grupo,
+                           total_pessoas=total_pessoas,
+                           total_servicos=total_servicos,
+                           media_servicos=media_servicos,
+                           serviram_0=serviram_0,
+                           serviram_1=serviram_1,
+                           serviram_2=serviram_2,
+                           serviram_3_ou_mais=serviram_3_ou_mais,
+                           pessoas_info=pessoas_info)
 
 
 @app.route('/cadastrar_pessoas', methods=['GET', 'POST'])

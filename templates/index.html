@@ -70,6 +70,13 @@
                     <p>Relatório em Excel</p>
                 </div>
             </a>
+            <a href="{{ url_for('relatorio_frequencia_web', mes=mes, ano=ano) }}" class="action-card" style="border-color: #10b981;">
+                <div class="action-card-icon">📊</div>
+                <div class="action-card-content">
+                    <h3>Frequência</h3>
+                    <p>Relatório de serviços</p>
+                </div>
+            </a>
         </div>
 
         <!-- Formulário Gerar Escala (oculto inicialmente) -->
@@ -626,7 +633,7 @@
                             }
                         } else {
                             // Modo edição: adicionar nova escala
-                            window.location.href = `/adicionar_escala/${year}/${month}/${day}`;
+                                window.location.href = `/adicionar_escala/${year}/${month}/${day}`;
                         }
                     });
                     
@@ -639,7 +646,7 @@
                 modal.style.display = "none";
                 document.body.style.overflow = "auto";
             }
-
+            
             if (modal) {
                 closeButton.onclick = function() { closeModal(); }
                 if (modalCloseBtn) {
