@@ -325,7 +325,17 @@ def gerar_escala_para_mes(mes, ano):
 
         # Usar db.execute() que retorna cursor, não cursor.execute() diretamente
         templates = {row['tipo_escala']: row for row in db.execute('SELECT * FROM escala_templates').fetchall()}
-        pessoas_e_grupos = {row['nome']: row['grupo'] for row in db.execute('SELECT nome, grupo FROM pessoas').fetchall()}
+        
+        # Carregar pessoas do banco com seus grupos e funções
+        pessoas_rows = db.execute('SELECT nome, grupo, funcoes FROM pessoas').fetchall()
+        pessoas_e_grupos = {row['nome']: row['grupo'] for row in pessoas_rows}
+        pessoas_e_funcoes = {}
+        for row in pessoas_rows:
+            nome = row['nome']
+            funcoes_str = row['funcoes'] or ''
+            # Parsear funções: pode ser "turibulo,naveta" ou "turibulo, naveta" ou apenas "turibulo"
+            funcoes_list = [f.strip().lower() for f in funcoes_str.split(',') if f.strip()]
+            pessoas_e_funcoes[nome] = set(funcoes_list)
         
         # Validar que há pessoas cadastradas
         if not pessoas_e_grupos:
