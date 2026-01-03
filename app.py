@@ -711,16 +711,8 @@ def index():
             mes_nome = meses_nomes[data_obj.month - 1]
             data_formatada = f"{dia_semana_nome}, {data_obj.day} De {mes_nome} De {data_obj.year}"
             
-            # Obter horário
-            horario = dias_missa_horarios.get(escala_dict.get('tipo_escala', ''), '')
-            if not horario:
-                tipo_escala = escala_dict.get('tipo_escala', '')
-                if 'Manhã' in tipo_escala or 'Manha' in tipo_escala:
-                    horario = '08:00'
-                elif 'Noite' in tipo_escala:
-                    horario = '19:00'
-                else:
-                    horario = '08:00'
+            # Obter horário (obrigatório - deve estar configurado em dias_missa)
+            horario = dias_missa_horarios.get(escala_dict.get('tipo_escala', ''), '') or ''
             
             # Contar membros
             def contar_membros(campo):
@@ -863,16 +855,8 @@ def visualizar_escala():
             mes_nome = meses_nomes[data_obj.month - 1]
             data_formatada = f"{dia_semana_nome}, {data_obj.day} De {mes_nome} De {data_obj.year}"
             
-            # Obter horário
-            horario = dias_missa_horarios.get(escala_dict.get('tipo_escala', ''), '')
-            if not horario:
-                tipo_escala = escala_dict.get('tipo_escala', '')
-                if 'Manhã' in tipo_escala or 'Manha' in tipo_escala:
-                    horario = '08:00'
-                elif 'Noite' in tipo_escala:
-                    horario = '19:00'
-                else:
-                    horario = '08:00'
+            # Obter horário (obrigatório - deve estar configurado em dias_missa)
+            horario = dias_missa_horarios.get(escala_dict.get('tipo_escala', ''), '') or ''
             
             # Contar membros
             def contar_membros(campo):
@@ -1520,6 +1504,10 @@ def adicionar_dia_missa_web():
             flash('Erro: Dados inválidos.', 'error')
             return redirect(url_for('gerenciar_dias_missa_web'))
         
+        if not horario:
+            flash('Erro: O horário é obrigatório. Por favor, selecione um horário para a missa.', 'error')
+            return redirect(url_for('gerenciar_dias_missa_web'))
+        
         conn = get_db()
         try:
             # Buscar maior ordem atual
@@ -1551,6 +1539,10 @@ def editar_dia_missa_web(dia_id):
         
         if not tipo_escala or dia_semana < 0 or dia_semana > 6:
             flash('Erro: Dados inválidos.', 'error')
+            return redirect(url_for('gerenciar_dias_missa_web'))
+        
+        if not horario:
+            flash('Erro: O horário é obrigatório. Por favor, selecione um horário para a missa.', 'error')
             return redirect(url_for('gerenciar_dias_missa_web'))
         
         conn = get_db()

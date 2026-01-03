@@ -50,8 +50,8 @@
                     {% endfor %}
                 </select>
 
-                <label for="horario">Horário (opcional):</label>
-                <input type="text" name="horario" id="horario" placeholder="Ex: 07:00, 18:00, 19:00">
+                <label for="horario">Horário <span style="color: red;">*</span>:</label>
+                <input type="time" name="horario" id="horario" required>
 
                 <label style="display: flex; align-items: center; gap: 10px; margin-top: 15px;">
                     <input type="checkbox" name="ativo" checked style="width: auto;">
@@ -100,8 +100,8 @@
                                 {% endfor %}
                             </select>
 
-                            <label for="horario_{{ dia.id }}">Horário:</label>
-                            <input type="text" name="horario" id="horario_{{ dia.id }}" value="{{ dia.horario or '' }}" placeholder="Ex: 07:00">
+                            <label for="horario_{{ dia.id }}">Horário <span style="color: red;">*</span>:</label>
+                            <input type="time" name="horario" id="horario_{{ dia.id }}" value="{{ dia.horario or '' }}" required>
 
                             <label for="ordem_{{ dia.id }}">Ordem:</label>
                             <input type="number" name="ordem" id="ordem_{{ dia.id }}" value="{{ dia.ordem }}" min="0">
