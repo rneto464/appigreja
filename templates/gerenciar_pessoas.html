@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Pessoas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Brasão da Paróquia -->
+        <div class="brasao-container">
+            <img src="{{ url_for('static', filename='brasao.png') }}" alt="Brasão da Paróquia São Maximiliano Maria Kolbe" class="brasao-image">
+        </div>
+        
+        <h1 class="page-title">Gerenciar Pessoas</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}<div class="flash-messages">{% for category, message in messages %}<div class="alert alert-{{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+        {% endwith %}
+
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <span class="modern-card-icon">➕</span>
+                <h2>Adicionar Nova Pessoa</h2>
+            </div>
+            <form action="{{ url_for('adicionar_pessoa_web') }}" method="post">
+                <label for="nome_pessoa">Nome:</label>
+                <input type="text" id="nome_pessoa" name="nome" placeholder="Nome Completo" required>
+                
+                <label for="grupo_pessoa">Grupo Principal:</label>
+                <select id="grupo_pessoa" name="grupo" required>
+                    <option value="cerimoniario">Cerimoniário (Mestre de Cerimonia)</option>
+                    <option value="veterano">Veterano (Experientes)</option>
+                    <option value="mirins">Mirins</option>
+                </select>
+
+                <div class="form-group-checkboxes" style="margin-top: 20px; margin-bottom: 20px;">
+                    <label>Funções Adicionais (se aplicável):</label>
+                    <div>
+                        <input type="checkbox" id="turibulo" name="funcoes" value="turibulo">
+                        <label for="turibulo" style="font-weight: normal; margin-left: 5px;">Turíbulo</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="naveta" name="funcoes" value="naveta">
+                        <label for="naveta" style="font-weight: normal; margin-left: 5px;">Naveta</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="tochas" name="funcoes" value="tochas">
+                        <label for="tochas" style="font-weight: normal; margin-left: 5px;">Tochas</label>
+                    </div>
+                </div>
+                <button type="submit">Adicionar Pessoa</button>
+            </form>
+        </div>
+
+        <div class="form-section-divider"></div>
+
+        <h2 class="section-title" style="text-align: center; margin: 40px 0 30px 0;">Pessoas Cadastradas por Categoria</h2>
+
+        {% for categoria, pessoas in [('Mestre de Cerimonia (Cerimoniários)', mestres_de_cerimonia), ('Experientes (Veteranos)', experientes), ('Mirins', mirins)] %}
+        <div class="modern-card" style="margin-top: 20px;">
+            <div class="modern-card-header">
+                <h3 style="margin: 0; text-align: left;">{{ categoria }}</h3>
+            </div>
+        <div class="person-list">
+            {% if pessoas %}
+                {% for pessoa in pessoas %}
+                    <div class="person-item">
+                        <div class="person-info">
+                            <span>{{ pessoa.nome }}</span>
+                            {% if pessoa.funcoes %}
+                                <small class="funcoes-info">Funções: {{ pessoa.funcoes.replace(',', ', ').title() }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="person-actions">
+                            <a href="{{ url_for('editar_pessoa_web', pessoa_id=pessoa.id) }}" class="edit-button">Editar</a>
+                            <form action="{{ url_for('remover_pessoa_web', pessoa_id=pessoa.id) }}" method="post" onsubmit="return confirm('Tem certeza que deseja remover {{ pessoa.nome }}?');">
+                                <button type="submit" class="button-danger">Remover</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>Nenhuma pessoa cadastrada nesta categoria.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="{{ url_for('index') }}" class="btn-cancel" style="display: inline-block; min-width: 200px;">← Voltar para Escalas</a>
+        </div>
+    </div>
+</body>
+</html>

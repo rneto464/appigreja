@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Modelo de Escala</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container">
+        <!-- Brasão da Paróquia -->
+        <div class="brasao-container">
+            <img src="{{ url_for('static', filename='brasao.png') }}" alt="Brasão da Paróquia São Maximiliano Maria Kolbe" class="brasao-image">
+        </div>
+        
+        <div class="edit-form-container">
+            <!-- Header -->
+            <div class="edit-form-header">
+                <div class="edit-form-title-section">
+                    <h1 class="edit-form-title">Editar Modelo</h1>
+                    <p class="edit-form-subtitle">{{ template.tipo_escala }}</p>
+                </div>
+                <a href="{{ url_for('gerenciar_modelos_web') }}" class="btn-cancel-header">
+                    <span class="cancel-icon">✕</span>
+                    Cancelar
+                </a>
+            </div>
+
+            <p style="text-align: center; max-width: 700px; margin: 0 auto 30px auto; color: #9ca3af; padding: 20px; background: #1f2937; border-radius: 12px; border: 1px solid #374151;">
+                Selecione as pessoas que estarão aptas a participar neste tipo de escala. O sistema escolherá aleatoriamente a partir desta lista ao gerar as escalas do mês.
+            </p>
+
+            <!-- Form Card -->
+            <div class="edit-form-card">
+                <form action="{{ url_for('atualizar_modelo_web', tipo_escala=template.tipo_escala) }}" method="post" class="edit-form-content">
+                    <!-- Equipe de Serviço -->
+                    <div class="form-field-group">
+                        <label class="field-label">
+                            <span class="field-icon">👥</span>
+                            Candidatos para Equipe de Serviço
+                        </label>
+                        
+                        <div class="team-selection-section">
+                            {% set cerimoniarios_selecionados = (template.cerimoniarios_template or '').split(', ') %}
+                            <div class="form-group">
+                                <label for="cerimoniarios">Candidatos a Cerimoniários</label>
+                                <select name="cerimoniarios" id="cerimoniarios" multiple class="team-select">
+                                    {% for nome in cerimoniarios %}
+                                        <option value="{{ nome }}" {% if nome in cerimoniarios_selecionados %}selected{% endif %}>
+                                            {{ nome }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            {% set veteranos_selecionados = (template.veteranos_template or '').split(', ') %}
+                            <div class="form-group">
+                                <label for="veteranos">Candidatos a Veteranos</label>
+                                <select name="veteranos" id="veteranos" multiple class="team-select">
+                                    {% for nome in veteranos %}
+                                        <option value="{{ nome }}" {% if nome in veteranos_selecionados %}selected{% endif %}>
+                                            {{ nome }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            {% set mirins_selecionados = (template.mirins_template or '').split(', ') %}
+                            <div class="form-group">
+                                <label for="mirins">Candidatos a Mirins</label>
+                                <select name="mirins" id="mirins" multiple class="team-select">
+                                    {% for nome in mirins %}
+                                        <option value="{{ nome }}" {% if nome in mirins_selecionados %}selected{% endif %}>
+                                            {{ nome }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #374151;">
+                                <h4 class="section-title" style="margin-bottom: 20px;">Funções Especiais (Para Eventos Especiais)</h4>
+                                <p style="color: #9ca3af; font-size: 0.9em; margin-bottom: 20px;">
+                                    Configure candidatos para funções especiais que podem ser usadas em eventos especiais (casamentos, festejos, solenidades, etc.) mesmo em dias de semana.
+                                </p>
+
+                                {% set turibulo_selecionados = (template.turibulo_template or '').split(', ') %}
+                                <div class="form-group">
+                                    <label for="turibulo">Candidatos a Turíbulo</label>
+                                    <select name="turibulo" id="turibulo" multiple class="team-select">
+                                        {% for nome in candidatos_funcoes %}
+                                            <option value="{{ nome }}" {% if nome in turibulo_selecionados %}selected{% endif %}>
+                                                {{ nome }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                {% set naveta_selecionados = (template.naveta_template or '').split(', ') %}
+                                <div class="form-group">
+                                    <label for="naveta">Candidatos a Naveta</label>
+                                    <select name="naveta" id="naveta" multiple class="team-select">
+                                        {% for nome in candidatos_funcoes %}
+                                            <option value="{{ nome }}" {% if nome in naveta_selecionados %}selected{% endif %}>
+                                                {{ nome }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                {% set tochas_selecionados = (template.tochas_template or '').split(', ') %}
+                                <div class="form-group">
+                                    <label for="tochas">Candidatos a Tochas</label>
+                                    <select name="tochas" id="tochas" multiple class="team-select">
+                                        {% for nome in candidatos_funcoes %}
+                                            <option value="{{ nome }}" {% if nome in tochas_selecionados %}selected{% endif %}>
+                                                {{ nome }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botões de Ação -->
+                    <div class="edit-form-actions">
+                        <button type="submit" class="btn-save">
+                            <span class="btn-icon">💾</span>
+                            Salvar Modelo
+                        </button>
+                        <a href="{{ url_for('gerenciar_modelos_web') }}" class="btn-cancel-form">
+                            Voltar sem Salvar
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Dica -->
+            <div class="form-tip">
+                <strong>Dica:</strong> Os modelos definem quais pessoas podem ser selecionadas automaticamente pelo sistema ao gerar escalas. Certifique-se de incluir todas as pessoas aptas para cada função.
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.team-select').select2({
+                placeholder: 'Clique para selecionar ou pesquisar nomes',
+                width: '100%'
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Escalas Paroquiais</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Brasão da Paróquia -->
+        <div class="brasao-container">
+            <img src="{{ url_for('static', filename='brasao.png') }}" alt="Brasão da Paróquia São Maximiliano Maria Kolbe" class="brasao-image">
+        </div>
+        
+        <!-- Header -->
+        <div class="main-header">
+            <div class="header-content">
+                <h1 class="main-title">Sistema de Escalas Paroquiais</h1>
+                <p class="main-subtitle">Gestão inteligente de equipes litúrgicas</p>
+            </div>
+            {% if not is_view_only %}
+            <div class="header-actions">
+                <a href="{{ url_for('visualizar_escala', mes=mes, ano=ano) }}" class="btn-view-public">
+                    <span class="btn-icon">👁️</span>
+                    Visualização Pública
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        {% if not is_view_only %}
+        <!-- Cards de Ação -->
+        <div class="action-cards">
+            <a href="#gerar-escala" class="action-card action-card-blue" id="card-gerar-escala">
+                <div class="action-card-icon">➕</div>
+                <div class="action-card-content">
+                    <h3>Gerar Escala</h3>
+                    <p>Criar nova escala mensal</p>
+                </div>
+            </a>
+            <a href="{{ url_for('gerenciar_pessoas_web') }}" class="action-card action-card-gray">
+                <div class="action-card-icon">👥</div>
+                <div class="action-card-content">
+                    <h3>Gerenciar Pessoas</h3>
+                    <p>Cadastro de membros</p>
+                </div>
+            </a>
+            <a href="{{ url_for('gerenciar_modelos_web') }}" class="action-card action-card-purple">
+                <div class="action-card-icon">📄</div>
+                <div class="action-card-content">
+                    <h3>Modelos</h3>
+                    <p>Templates de escala</p>
+                </div>
+            </a>
+            <a href="{{ url_for('exportar_mes', ano=ano, mes=mes) }}" class="action-card action-card-yellow">
+                <div class="action-card-icon">📥</div>
+                <div class="action-card-content">
+                    <h3>Exportar</h3>
+                    <p>Relatório em Excel</p>
+                </div>
+            </a>
+            <a href="{{ url_for('relatorio_frequencia_web', mes=mes, ano=ano) }}" class="action-card" style="border-color: #10b981;">
+                <div class="action-card-icon">📊</div>
+                <div class="action-card-content">
+                    <h3>Frequência</h3>
+                    <p>Relatório de serviços</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Formulário Gerar Escala (oculto inicialmente) -->
+        <div id="gerar-escala-form" class="form-section modern-card" style="display: none; margin-top: 30px; position: relative;">
+            <button onclick="document.getElementById('gerar-escala-form').style.display='none'; return false;" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #9ca3af; font-size: 24px; cursor: pointer; padding: 5px 10px; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.color='#ffffff'; this.style.background='#374151';" onmouseout="this.style.color='#9ca3af'; this.style.background='transparent';" title="Fechar">×</button>
+            <form action="{{ url_for('gerar_escala_web') }}" method="post">
+                <h4 style="color: #7dd3fc; margin-top: 0; margin-right: 40px;">Gerar/Substituir Escalas</h4>
+                <label for="mes_gerar">Mês:</label>
+                <input type="number" id="mes_gerar" name="mes" min="1" max="12" value="{{ mes }}" required>
+                <label for="ano_gerar">Ano:</label>
+                <input type="number" id="ano_gerar" name="ano" min="2020" max="2050" value="{{ ano }}" required>
+                <button type="submit" style="margin-top: 10px;">Gerar Escala</button>
+            </form>
+            
+            <!-- Formulário Limpar Mês -->
+            <form action="{{ url_for('limpar_mes_web') }}" method="post" onsubmit="return confirm('⚠️ ATENÇÃO: Esta ação irá apagar TODAS as escalas do mês {{ mes }}/{{ ano }}. Esta ação não pode ser desfeita!\n\nTem certeza que deseja continuar?');" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #374151;">
+                <h4 style="color: #dc2626; margin-top: 0;">Limpar Escalas do Mês</h4>
+                <p style="color: #9ca3af; font-size: 0.9em; margin-bottom: 15px;">Esta ação irá remover permanentemente todas as escalas do mês selecionado.</p>
+                <input type="hidden" name="mes" value="{{ mes }}">
+                <input type="hidden" name="ano" value="{{ ano }}">
+                <button type="submit" class="button-danger" style="width: 100%; background-color: #dc2626; color: white; padding: 12px 15px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold;">
+                    🗑️ Limpar Todas as Escalas de {{ mes_nome }}/{{ ano }}
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- Navegação de Mês -->
+        <div class="month-navigation">
+            <button class="month-nav-btn" id="prev-month-btn">‹</button>
+            <div class="month-display">
+                <div class="month-name">{{ mes_nome }}</div>
+                <div class="year-name">{{ ano }}</div>
+            </div>
+            <button class="month-nav-btn" id="next-month-btn">›</button>
+        </div>
+
+        <!-- Filtro por Nome -->
+        <div class="search-filter-section">
+            <form method="get" action="{{ url_for('visualizar_escala' if is_view_only else 'index') }}" class="search-form">
+                    <input type="hidden" name="mes" value="{{ mes }}">
+                    <input type="hidden" name="ano" value="{{ ano }}">
+                <div class="search-input-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input 
+                        type="text" 
+                        name="filtro_nome" 
+                        id="filtro_nome" 
+                        class="search-input" 
+                        placeholder="Buscar por nome..." 
+                        value="{{ filtro_nome_ativo or '' }}"
+                    >
+                    {% if filtro_nome_ativo %}
+                    <a href="{{ url_for('visualizar_escala' if is_view_only else 'index', mes=mes, ano=ano) }}" class="search-clear-btn" title="Limpar filtro">
+                        ✕
+                    </a>
+                {% endif %}
+            </div>
+            </form>
+        </div>
+
+        <!-- Calendário -->
+        <div class="calendar-section">
+            <div class="section-header">
+                <span class="section-icon">📅</span>
+                <h2 class="section-title">Calendário</h2>
+            </div>
+        <div id="calendar-container">
+                <div class="calendar-header-days">
+                    <div class="calendar-day-header">Dom</div>
+                    <div class="calendar-day-header">Seg</div>
+                    <div class="calendar-day-header">Ter</div>
+                    <div class="calendar-day-header">Qua</div>
+                    <div class="calendar-day-header">Qui</div>
+                    <div class="calendar-day-header">Sex</div>
+                    <div class="calendar-day-header">Sáb</div>
+            </div>
+            <div class="calendar-grid"></div>
+        </div>
+
+            <!-- Legenda de Cores -->
+            <div class="color-legend">
+                <div class="legend-item">
+                    <div class="legend-color legend-branco"></div>
+                    <span>Bata Branca</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color legend-vermelho"></div>
+                    <span>Bata Vermelha</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Escalas Detalhadas -->
+        {% if escalas %}
+        <div class="detailed-schedules-section">
+            <div class="section-header">
+                <span class="section-icon">📋</span>
+                <h2 class="section-title">Escalas Detalhadas</h2>
+            </div>
+            <div class="schedules-list">
+            {% for escala in escalas %}
+                <div class="schedule-card">
+                    <div class="schedule-header">
+                        <div class="schedule-date">
+                            {{ escala.data_formatada }}
+                        </div>
+                        <div class="schedule-bata-badge schedule-bata-{{ escala.bata_cor_class }}">
+                            {{ escala.bata_cor or 'Branco' }}
+                        </div>
+                    </div>
+                    <div class="schedule-time">
+                        <span class="time-icon">🕐</span>
+                        <span>{{ escala.horario or '--:--' }}</span>
+                    </div>
+                    <div class="schedule-team">
+                        <span class="team-icon">👥</span>
+                        <span class="team-label">Equipe de Serviço:</span>
+                    </div>
+                    <div class="schedule-members">
+                        {% set todos_membros = [] %}
+                        {% if escala.cerimoniarios %}
+                            {% for nome in escala.cerimoniarios.split(', ') if nome %}
+                                {% set _ = todos_membros.append(nome) %}
+                            {% endfor %}
+                        {% endif %}
+                        {% if escala.veteranos %}
+                            {% for nome in escala.veteranos.split(', ') if nome %}
+                                {% set _ = todos_membros.append(nome) %}
+                            {% endfor %}
+                        {% endif %}
+                        {% if escala.mirins %}
+                            {% for nome in escala.mirins.split(', ') if nome %}
+                                {% set _ = todos_membros.append(nome) %}
+                            {% endfor %}
+                        {% endif %}
+                        {% if escala.turibulo %}
+                            {% for nome in escala.turibulo.split(', ') if nome %}
+                                {% set _ = todos_membros.append(nome) %}
+                            {% endfor %}
+                        {% endif %}
+                        {% if escala.naveta %}
+                            {% for nome in escala.naveta.split(', ') if nome %}
+                                {% set _ = todos_membros.append(nome) %}
+                            {% endfor %}
+                        {% endif %}
+                        {% if escala.tochas %}
+                            {% for nome in escala.tochas.split(', ') if nome %}
+                                {% set _ = todos_membros.append(nome) %}
+                            {% endfor %}
+                    {% endif %}
+                        {% for membro in todos_membros %}
+                            <span class="member-tag">{{ membro }}</span>
+                        {% endfor %}
+                    </div>
+                    {% if not is_view_only %}
+                    <div class="schedule-actions">
+                        <a href="{{ url_for('editar_escala_web', escala_id=escala.id) }}" class="btn-edit-schedule">
+                            <span class="btn-icon-small">✏️</span>
+                            Editar
+                        </a>
+                        <form action="{{ url_for('remover_escala_web', escala_id=escala.id) }}" method="post" onsubmit="return confirm('Tem a certeza?');" style="display: inline;">
+                            <button type="submit" class="btn-remove-schedule">
+                                <span class="btn-icon-small">🗑️</span>
+                                Remover
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div id="escalaModal" class="modal">
+        <div class="modal-content modern-modal">
+            <div class="modal-header">
+                <h2 id="modal-title" class="modal-title-modern">Detalhes da Escala</h2>
+            <span class="close-button">&times;</span>
+            </div>
+            <div id="modal-body" class="modal-body-modern"></div>
+            <div class="modal-footer">
+                <button id="modal-close-btn" class="modal-close-btn">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentMonth = {{ mes }};
+            const currentYear = {{ ano }};
+            const eventsData = {{ calendar_events | tojson | safe }};
+            const isViewOnly = {{ is_view_only | tojson }};
+            const calendarGrid = document.querySelector('.calendar-grid');
+            const monthYearHeader = document.querySelector('.month-name');
+            const modal = document.getElementById('escalaModal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalBody = document.getElementById('modal-body');
+            const closeButton = document.querySelector('.close-button');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            
+            // Função para mostrar/esconder formulário de gerar escala
+            function toggleGerarEscalaForm() {
+                const form = document.getElementById('gerar-escala-form');
+                if (form) {
+                    if (form.style.display === 'none' || form.style.display === '') {
+                        form.style.display = 'block';
+                        setTimeout(() => {
+                            form.scrollIntoView({behavior: 'smooth', block: 'start'});
+                        }, 100);
+                    } else {
+                        form.style.display = 'none';
+                    }
+                }
+            }
+            
+            // Adicionar evento de clique ao card de gerar escala
+            const gerarEscalaCard = document.getElementById('card-gerar-escala') || document.querySelector('.action-card-blue');
+            if (gerarEscalaCard) {
+                gerarEscalaCard.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    toggleGerarEscalaForm();
+                    return false;
+                });
+            }
+
+            const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                               'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            
+            // Função para formatar data
+            function formatDate(day, month, year) {
+                const dias_semana = ['Domingo', 'Segunda-Feira', 'Terça-Feira', 'Quarta-Feira', 'Quinta-Feira', 'Sexta-Feira', 'Sábado'];
+                const meses_nomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                const date = new Date(year, month - 1, day);
+                const dia_semana = dias_semana[date.getDay()];
+                const mes_nome = meses_nomes[month - 1];
+                return `${dia_semana}, ${day} De ${mes_nome} De ${year}`;
+            }
+            
+            // Função para obter membros estruturados (do backend ou fallback para parse)
+            function getMembers(event) {
+                // Primeiro, tentar usar os dados estruturados do backend
+                if (event.extendedProps?.members) {
+                    return event.extendedProps.members;
+                }
+                
+                // Fallback: tentar fazer parse da descrição se não houver dados estruturados
+                const members = {
+                    cerimoniarios: [],
+                    veteranos: [],
+                    mirins: [],
+                    turibulo: [],
+                    naveta: [],
+                    tochas: []
+                };
+                
+                const description = event.extendedProps?.description || '';
+                if (!description) return members;
+                
+                // Remover tags HTML
+                const cleanDesc = description.replace(/<[^>]*>/g, '');
+                
+                // Extrair cada categoria
+                const cerimoniariosMatch = cleanDesc.match(/Cerimoniários:\s*([^\n]*)/i);
+                const veteranosMatch = cleanDesc.match(/Veteranos:\s*([^\n]*)/i);
+                const mirinsMatch = cleanDesc.match(/Mirins:\s*([^\n]*)/i);
+                const turibuloMatch = cleanDesc.match(/Turíbulo:\s*([^\n]*)/i);
+                const navetaMatch = cleanDesc.match(/Naveta:\s*([^\n]*)/i);
+                const tochasMatch = cleanDesc.match(/Tochas:\s*([^\n]*)/i);
+                
+                if (cerimoniariosMatch && cerimoniariosMatch[1]) {
+                    members.cerimoniarios = cerimoniariosMatch[1].split(',').map(n => n.trim()).filter(n => n);
+                }
+                if (veteranosMatch && veteranosMatch[1]) {
+                    members.veteranos = veteranosMatch[1].split(',').map(n => n.trim()).filter(n => n);
+                }
+                if (mirinsMatch && mirinsMatch[1]) {
+                    members.mirins = mirinsMatch[1].split(',').map(n => n.trim()).filter(n => n);
+                }
+                if (turibuloMatch && turibuloMatch[1]) {
+                    members.turibulo = turibuloMatch[1].split(',').map(n => n.trim()).filter(n => n);
+                }
+                if (navetaMatch && navetaMatch[1]) {
+                    members.naveta = navetaMatch[1].split(',').map(n => n.trim()).filter(n => n);
+                }
+                if (tochasMatch && tochasMatch[1]) {
+                    members.tochas = tochasMatch[1].split(',').map(n => n.trim()).filter(n => n);
+                }
+                
+                return members;
+            }
+            
+            // Função para mostrar o modal com o novo estilo
+            function showEventModal(event, day, month, year) {
+                modalTitle.textContent = 'Detalhes da Escala';
+                
+                const dataFormatada = formatDate(day, month, year);
+                const horario = event.extendedProps?.horario || '--:--';
+                const bataCor = event.extendedProps?.bataCor || 'Bata Branca';
+                const corClass = event.extendedProps?.corClass || 'branco';
+                const members = getMembers(event);
+                
+                // Construir HTML do modal
+                let modalHTML = `
+                    <div class="modal-details-container">
+                        <!-- Data -->
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-label">Data</div>
+                            <div class="modal-date-value">${dataFormatada}</div>
+                        </div>
+                        
+                        <!-- Horário e Cor Litúrgica -->
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-row">
+                                <div class="modal-detail-half">
+                                    <div class="modal-detail-label">Horário</div>
+                                    <div class="modal-time-value">
+                                        <span class="modal-icon">🕐</span>
+                                        <span>${horario}</span>
+                                    </div>
+                                </div>
+                                <div class="modal-detail-half">
+                                    <div class="modal-detail-label">Cor Litúrgica</div>
+                                    <div class="modal-bata-badge modal-bata-${corClass}">${bataCor}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Equipe de Serviço -->
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-label">
+                                <span class="modal-icon">👥</span>
+                                Equipe de Serviço
+                            </div>
+                            <div class="modal-team-members">
+                `;
+                
+                // Adicionar membros por categoria
+                const allMembers = [];
+                if (members.cerimoniarios.length > 0) {
+                    members.cerimoniarios.forEach(nome => {
+                        allMembers.push({ nome, categoria: 'Cerimoniários' });
+                    });
+                }
+                if (members.veteranos.length > 0) {
+                    members.veteranos.forEach(nome => {
+                        allMembers.push({ nome, categoria: 'Veteranos' });
+                    });
+                }
+                if (members.mirins.length > 0) {
+                    members.mirins.forEach(nome => {
+                        allMembers.push({ nome, categoria: 'Mirins' });
+                    });
+                }
+                if (members.turibulo.length > 0) {
+                    members.turibulo.forEach(nome => {
+                        allMembers.push({ nome, categoria: 'Turíbulo' });
+                    });
+                }
+                if (members.naveta.length > 0) {
+                    members.naveta.forEach(nome => {
+                        allMembers.push({ nome, categoria: 'Naveta' });
+                    });
+                }
+                if (members.tochas.length > 0) {
+                    members.tochas.forEach(nome => {
+                        allMembers.push({ nome, categoria: 'Tochas' });
+                    });
+                }
+                
+                // Renderizar cards de membros com suas funções
+                allMembers.forEach(member => {
+                    const inicial = member.nome.charAt(0).toUpperCase();
+                    modalHTML += `
+                        <div class="modal-member-card">
+                            <div class="modal-member-avatar">${inicial}</div>
+                            <div class="modal-member-info">
+                                <div class="modal-member-name">${member.nome}</div>
+                                <div class="modal-member-role">${member.categoria}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                if (allMembers.length === 0) {
+                    modalHTML += `<div class="modal-member-name" style="color: #9ca3af;">Nenhum membro atribuído</div>`;
+                }
+                
+                modalHTML += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                modalBody.innerHTML = modalHTML;
+                modal.style.display = "block";
+                // Prevenir scroll do body quando modal está aberto
+                document.body.style.overflow = "hidden";
+            }
+
+            function countMembers(escala) {
+                let count = 0;
+                if (escala.cerimoniarios) count += escala.cerimoniarios.split(', ').filter(n => n).length;
+                if (escala.veteranos) count += escala.veteranos.split(', ').filter(n => n).length;
+                if (escala.mirins) count += escala.mirins.split(', ').filter(n => n).length;
+                if (escala.turibulo) count += escala.turibulo.split(', ').filter(n => n).length;
+                if (escala.naveta) count += escala.naveta.split(', ').filter(n => n).length;
+                if (escala.tochas) count += escala.tochas.split(', ').filter(n => n).length;
+                return count;
+            }
+
+            function getHorarioFromTipo(tipo_escala) {
+                // Mapear tipo de escala para horário
+                if (tipo_escala.includes('Manhã')) return '07:00';
+                if (tipo_escala.includes('Noite')) return '18:00';
+                return '19:00'; // padrão para semana
+            }
+
+            function formatDate(day, month, year) {
+                const date = new Date(year, month - 1, day);
+                const dias_semana = ['Domingo', 'Segunda-Feira', 'Terça-Feira', 'Quarta-Feira', 'Quinta-Feira', 'Sexta-Feira', 'Sábado'];
+                const meses_nomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                const dia_semana = dias_semana[date.getDay()];
+                const mes_nome = meses_nomes[month - 1];
+                return `${dia_semana}, ${day} De ${mes_nome} De ${year}`;
+            }
+
+            function parseDescription(description) {
+                const data = {
+                    cerimoniarios: [],
+                    veteranos: [],
+                    mirins: [],
+                    turibulo: [],
+                    naveta: [],
+                    tochas: [],
+                    bataCor: 'Bata Branca'
+                };
+                
+                if (!description) return data;
+                
+                // Extrair cor da bata
+                const bataMatch = description.match(/Cor da Túnica[:\s]*<b>([^<]+)<\/b>/i);
+                if (bataMatch) {
+                    data.bataCor = bataMatch[1].trim();
+                }
+                
+                // Extrair membros de cada categoria
+                const patterns = {
+                    cerimoniarios: /Cerimoniários[:\s]*<b>([^<]+)<\/b>/i,
+                    veteranos: /Veteranos[:\s]*<b>([^<]+)<\/b>/i,
+                    mirins: /Mirins[:\s]*<b>([^<]+)<\/b>/i,
+                    turibulo: /Turíbulo[:\s]*<b>([^<]+)<\/b>/i,
+                    naveta: /Naveta[:\s]*<b>([^<]+)<\/b>/i,
+                    tochas: /Tochas[:\s]*<b>([^<]+)<\/b>/i
+                };
+                
+                for (const [key, pattern] of Object.entries(patterns)) {
+                    const match = description.match(pattern);
+                    if (match && match[1]) {
+                        data[key] = match[1].split(',').map(n => n.trim()).filter(n => n);
+                    }
+                }
+                
+                return data;
+            }
+
+            function showEscalaDetails(event, day, month, year) {
+                showEventModal(event, day, month, year);
+            }
+
+            function renderCalendar(month, year) {
+                calendarGrid.innerHTML = '';
+                const date = new Date(year, month - 1, 1);
+                monthYearHeader.textContent = monthNames[month - 1];
+                const firstDayOfWeek = date.getDay();
+                const daysInMonth = new Date(year, month, 0).getDate();
+                
+                for (let i = 0; i < firstDayOfWeek; i++) {
+                    const emptyCell = document.createElement('div');
+                    emptyCell.className = 'calendar-day empty';
+                    calendarGrid.appendChild(emptyCell);
+                }
+                
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayCell = document.createElement('div');
+                    dayCell.className = 'calendar-day';
+                    if (isViewOnly) {
+                        dayCell.classList.add('view-only');
+                    }
+                    
+                    const dayNumber = document.createElement('div');
+                    dayNumber.className = 'day-number';
+                    dayNumber.textContent = day;
+                    dayCell.appendChild(dayNumber);
+                    
+                    const dateString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const eventsOnDay = eventsData.filter(e => e.start === dateString);
+                    
+                    if (eventsOnDay.length > 0) {
+                        eventsOnDay.forEach(event => {
+                            const eventEl = document.createElement('div');
+                            eventEl.className = 'calendar-event';
+                            if (event.classNames && event.classNames.length > 0) {
+                                eventEl.classList.add(...event.classNames);
+                            }
+                            
+                            const horario = event.extendedProps?.horario || getHorarioFromTipo(event.title);
+                            const memberCount = event.extendedProps?.memberCount || 0;
+                            
+                            eventEl.innerHTML = `
+                                <div class="event-time">${horario}</div>
+                                <div class="event-members">${memberCount} membros</div>
+                            `;
+                            
+                            if (event.extendedProps && event.extendedProps.description) {
+                               eventEl.title = event.extendedProps.description.replace(/<br>/g, '\n').replace(/<b>/g, '').replace(/<\/b>/g, '');
+                            }
+                            
+                            // Adicionar evento de clique para mostrar modal ou editar escala
+                            if (isViewOnly) {
+                                // Modo visualização: mostrar modal com o evento específico
+                                eventEl.style.cursor = 'pointer';
+                                eventEl.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    showEventModal(event, day, month, year);
+                                });
+                            } else if (event.id) {
+                                // Modo edição: redirecionar para editar escala
+                                eventEl.style.cursor = 'pointer';
+                                eventEl.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    window.location.href = `/editar_escala/${event.id}`;
+                                });
+                            }
+                            
+                            dayCell.appendChild(eventEl);
+                        });
+                    }
+                    
+                    // Clique na célula do dia (quando não clica diretamente no evento)
+                    dayCell.addEventListener('click', (e) => {
+                        // Se clicou em um evento, o evento já foi tratado acima
+                        if (e.target.closest('.calendar-event')) {
+                            return;
+                        }
+                        // Se há eventos e está em modo visualização, mostrar o primeiro
+                        if (isViewOnly) {
+                            if (eventsOnDay.length > 0) {
+                                showEventModal(eventsOnDay[0], day, month, year);
+                            }
+                        } else {
+                            // Modo edição: adicionar nova escala
+                                window.location.href = `/adicionar_escala/${year}/${month}/${day}`;
+                        }
+                    });
+                    
+                    calendarGrid.appendChild(dayCell);
+                }
+            }
+            
+            // Função para fechar modal e restaurar scroll
+            function closeModal() {
+                modal.style.display = "none";
+                document.body.style.overflow = "auto";
+            }
+            
+            if (modal) {
+                closeButton.onclick = function() { closeModal(); }
+                if (modalCloseBtn) {
+                    modalCloseBtn.onclick = function() { closeModal(); }
+                }
+                // Melhorar fechamento ao clicar fora (incluindo mobile)
+                modal.onclick = function(event) { 
+                    if (event.target === modal) { 
+                        closeModal();
+                    } 
+                }
+                // Prevenir fechamento ao clicar dentro do modal-content
+                const modalContent = document.querySelector('.modal-content.modern-modal');
+                if (modalContent) {
+                    modalContent.onclick = function(event) {
+                        event.stopPropagation();
+                    }
+                }
+            }
+            
+            renderCalendar(currentMonth, currentYear);
+            
+            document.getElementById('prev-month-btn').addEventListener('click', () => {
+                let newMonth = currentMonth - 1, newYear = currentYear;
+                if (newMonth < 1) { newMonth = 12; newYear--; }
+                const baseUrl = isViewOnly ? '/visualizar' : '/';
+                window.location.href = `${baseUrl}?mes=${newMonth}&ano=${newYear}`;
+            });
+            
+            document.getElementById('next-month-btn').addEventListener('click', () => {
+                let newMonth = currentMonth + 1, newYear = currentYear;
+                if (newMonth > 12) { newMonth = 1; newYear++; }
+                const baseUrl = isViewOnly ? '/visualizar' : '/';
+                window.location.href = `${baseUrl}?mes=${newMonth}&ano=${newYear}`;
+            });
+            
+            // Filtro por nome - busca ao pressionar Enter
+            const searchInput = document.getElementById('filtro_nome');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const form = searchInput.closest('form');
+                        if (form) {
+                            form.submit();
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

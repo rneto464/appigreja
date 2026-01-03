@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Nova Escala</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container">
+        <!-- Brasão da Paróquia -->
+        <div class="brasao-container">
+            <img src="{{ url_for('static', filename='brasao.png') }}" alt="Brasão da Paróquia São Maximiliano Maria Kolbe" class="brasao-image">
+        </div>
+        
+        <div class="edit-form-container">
+            <!-- Header -->
+            <div class="edit-form-header">
+                <div class="edit-form-title-section">
+                    <h1 class="edit-form-title">Adicionar Nova Escala</h1>
+                    <p class="edit-form-subtitle">Crie uma nova escala de serviço</p>
+                </div>
+                <a href="{{ url_for('index') }}" class="btn-cancel-header">
+                    <span class="cancel-icon">✕</span>
+                    Cancelar
+                </a>
+            </div>
+
+            {% if escalas_existentes %}
+            <div class="eventos-existentes-card" style="margin-bottom: 30px;">
+                <div class="eventos-header">
+                    <span class="eventos-icon">📅</span>
+                    <h3>Eventos já cadastrados para este dia</h3>
+                </div>
+                <div class="eventos-list">
+                    {% for escala in escalas_existentes %}
+                    <div class="evento-item">
+                        <div class="evento-info">
+                            <strong class="evento-nome">{{ escala.tipo_escala }}</strong>
+                            {% if escala.bata_cor %}
+                                <span class="evento-bata">({{ escala.bata_cor }})</span>
+                            {% endif %}
+                        </div>
+                        <a href="{{ url_for('editar_escala_web', escala_id=escala.id) }}" class="btn-editar-evento">✏️ Editar</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Form Card -->
+            <div class="edit-form-card">
+                <form action="{{ url_for('salvar_nova_escala_web') }}" method="post" class="edit-form-content" id="form-adicionar-escala">
+                    <input type="hidden" name="data" value="{{ data_para_db }}">
+
+                    <!-- Data -->
+                    <div class="form-field-group">
+                        <label for="data" class="field-label">
+                            <span class="field-icon">📅</span>
+                            Data
+                        </label>
+                        <div class="input-with-icon">
+                            <input type="text" id="data" value="{{ data_para_exibir }}" readonly class="form-input">
+                            <span class="input-icon">📅</span>
+                        </div>
+                    </div>
+
+                    <!-- Tipo de Escala -->
+                    <div class="form-field-group">
+                        <label for="tipo_escala" class="field-label">
+                            <span class="field-icon">📋</span>
+                            Tipo de Escala / Evento
+                        </label>
+                        <input type="text" id="tipo_escala" name="tipo_escala" placeholder="Ex: Domingo Manhã, Festejo, Casamento..." required class="form-input" style="padding: 14px 16px;">
+                    </div>
+
+                    <!-- Horário -->
+                    <div class="form-field-group">
+                        <label for="horario" class="field-label">
+                            <span class="field-icon">🕐</span>
+                            Horário
+                        </label>
+                        <div class="input-with-icon">
+                            <input type="time" id="horario" name="horario" value="08:00" class="form-input">
+                            <span class="input-icon">🕐</span>
+                        </div>
+                    </div>
+
+                    <!-- Cor Litúrgica -->
+                    <div class="form-field-group">
+                        <label for="bata_cor" class="field-label">
+                            <span class="field-icon">🎨</span>
+                            Cor Litúrgica
+                        </label>
+                        <select name="bata_cor" id="bata_cor" class="form-select">
+                            <option value="Bata Branca" selected>Bata Branca</option>
+                            <option value="Bata Vermelha">Bata Vermelha</option>
+                        </select>
+                    </div>
+
+                    <!-- Equipe de Serviço -->
+                    <div class="form-field-group">
+                        <label class="field-label">
+                            <span class="field-icon">👥</span>
+                            Equipe de Serviço
+                        </label>
+                        
+                        <!-- Seleção de Membros por Função -->
+                        <div class="team-selection-section">
+                            <div class="form-group">
+                                <label for="cerimoniarios">Cerimoniários</label>
+                                <select name="cerimoniarios" id="cerimoniarios" multiple class="team-select">
+                                    {% for pessoa in todos_cerimoniarios %}
+                                        <option value="{{ pessoa }}">{{ pessoa }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="veteranos">Veteranos</label>
+                                <select name="veteranos" id="veteranos" multiple class="team-select">
+                                    {% for pessoa in (todos_veteranos + todos_cerimoniarios) %}
+                                        <option value="{{ pessoa }}">{{ pessoa }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="mirins">Mirins</label>
+                                <select name="mirins" id="mirins" multiple class="team-select">
+                                    {% for pessoa in todas_mirins %}
+                                        <option value="{{ pessoa }}">{{ pessoa }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="turibulo">Turíbulo</label>
+                                <select name="turibulo" id="turibulo" multiple class="team-select">
+                                    {% for nome in candidatos_funcoes %}
+                                        <option value="{{ nome }}">{{ nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="naveta">Naveta</label>
+                                <select name="naveta" id="naveta" multiple class="team-select">
+                                    {% for nome in candidatos_funcoes %}
+                                        <option value="{{ nome }}">{{ nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="tochas">Tochas</label>
+                                <select name="tochas" id="tochas" multiple class="team-select">
+                                    {% for nome in candidatos_funcoes %}
+                                        <option value="{{ nome }}">{{ nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botões de Ação -->
+                    <div class="edit-form-actions">
+                        <button type="submit" class="btn-save">
+                            <span class="btn-icon">💾</span>
+                            Salvar e Voltar
+                        </button>
+                        <button type="button" id="btn-salvar-adicionar-outro" class="btn-save" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
+                            <span class="btn-icon">💾</span>
+                            Salvar e Adicionar Outro
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn-cancel-form">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Dica -->
+            <div class="form-tip">
+                <strong>Dica:</strong> Certifique-se de que todos os membros da equipe estão disponíveis na data selecionada. As alterações serão salvas apenas após clicar em "Salvar".
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.team-select').select2({
+                placeholder: 'Selecionar membro...',
+                width: '100%'
+            });
+            
+            // Botão "Salvar e Adicionar Outro"
+            $('#btn-salvar-adicionar-outro').on('click', function(e) {
+                e.preventDefault();
+                
+                var inputHidden = $('<input>').attr({
+                    type: 'hidden',
+                    name: 'adicionar_outro',
+                    value: '1'
+                });
+                $('#form-adicionar-escala').append(inputHidden);
+                $('#form-adicionar-escala').submit();
+            });
+        });
+    </script>
+</body>
+</html>

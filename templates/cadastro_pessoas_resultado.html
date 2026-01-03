@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Pessoas - Resultado</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="main-header">
+            <div class="header-content">
+                <h1 class="main-title">Cadastro de Pessoas</h1>
+                <p class="main-subtitle">Resultado do cadastro em massa</p>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="resultado-cadastro">
+            <div class="resumo">
+                <h2>Resumo</h2>
+                <ul>
+                    <li><strong>Pessoas cadastradas:</strong> {{ total_cadastrados }}</li>
+                    <li><strong>Pessoas ignoradas:</strong> {{ total_ignorados }}</li>
+                </ul>
+            </div>
+
+            {% if pessoas_cadastradas %}
+            <div class="pessoas-cadastradas">
+                <h3>✅ Pessoas Cadastradas ({{ pessoas_cadastradas|length }})</h3>
+                <ul>
+                    {% for pessoa in pessoas_cadastradas %}
+                    <li>{{ pessoa }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if pessoas_ignoradas %}
+            <div class="pessoas-ignoradas">
+                <h3>ℹ️ Pessoas Ignoradas ({{ pessoas_ignoradas|length }})</h3>
+                <ul>
+                    {% for pessoa in pessoas_ignoradas %}
+                    <li>{{ pessoa }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="acoes">
+                <a href="{{ url_for('index') }}" class="btn btn-primary">Voltar para Início</a>
+                <a href="{{ url_for('gerenciar_pessoas_web') }}" class="btn btn-secondary">Gerenciar Pessoas</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

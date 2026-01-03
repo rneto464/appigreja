@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Escala</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container">
+        <!-- Brasão da Paróquia -->
+        <div class="brasao-container">
+            <img src="{{ url_for('static', filename='brasao.png') }}" alt="Brasão da Paróquia São Maximiliano Maria Kolbe" class="brasao-image">
+        </div>
+        
+        <div class="edit-form-container">
+            <!-- Header -->
+            <div class="edit-form-header">
+                <div class="edit-form-title-section">
+                    <h1 class="edit-form-title">Editar Escala</h1>
+                    <p class="edit-form-subtitle">Modifique os detalhes da escala de serviço</p>
+                </div>
+                <a href="{{ url_for('index') }}" class="btn-cancel-header">
+                    <span class="cancel-icon">✕</span>
+                    Cancelar
+                </a>
+            </div>
+
+            <!-- Form Card -->
+            <div class="edit-form-card">
+                <form action="{{ url_for('editar_escala_web', escala_id=escala.id) }}" method="post" class="edit-form-content">
+                    <!-- Data -->
+                    <div class="form-field-group">
+                        <label for="data" class="field-label">
+                            <span class="field-icon">📅</span>
+                            Data
+                        </label>
+                        <div class="input-with-icon">
+                            <input type="text" id="data" value="{{ escala.data }}" readonly class="form-input">
+                            <span class="input-icon">📅</span>
+                        </div>
+                        <div class="date-display">{{ escala.data_formatada or escala.data }}</div>
+                    </div>
+
+                    <!-- Horário -->
+                    <div class="form-field-group">
+                        <label for="horario" class="field-label">
+                            <span class="field-icon">🕐</span>
+                            Horário
+                        </label>
+                        <div class="input-with-icon">
+                            <input type="time" id="horario" name="horario" value="{{ escala.horario or '08:00' }}" class="form-input">
+                            <span class="input-icon">🕐</span>
+                        </div>
+                    </div>
+
+                    <!-- Cor Litúrgica -->
+                    <div class="form-field-group">
+                        <label for="bata_cor" class="field-label">
+                            <span class="field-icon">🎨</span>
+                            Cor Litúrgica
+                        </label>
+                        <select name="bata_cor" id="bata_cor" class="form-select">
+                            <option value="Bata Branca" {% if escala.bata_cor == 'Bata Branca' or escala.bata_cor == 'Branca' or not escala.bata_cor %}selected{% endif %}>Bata Branca</option>
+                            <option value="Bata Vermelha" {% if escala.bata_cor == 'Bata Vermelha' or escala.bata_cor == 'Vermelha' %}selected{% endif %}>Bata Vermelha</option>
+                        </select>
+                    </div>
+
+                    <!-- Equipe de Serviço -->
+                    <div class="form-field-group">
+                        <label class="field-label">
+                            <span class="field-icon">👥</span>
+                            Equipe de Serviço
+                        </label>
+                        
+                        <!-- Membros por Categoria -->
+                        <div class="team-categories-list">
+                            <!-- Cerimoniários -->
+                            {% if escala.cerimoniarios %}
+                                {% set cerimoniarios_list = [] %}
+                                {% if escala.cerimoniarios is string %}
+                                    {% for nome in escala.cerimoniarios.split(', ') if nome %}
+                                        {% set _ = cerimoniarios_list.append(nome) %}
+                                    {% endfor %}
+                                {% else %}
+                                    {% for nome in escala.cerimoniarios if nome %}
+                                        {% set _ = cerimoniarios_list.append(nome) %}
+                                    {% endfor %}
+                                {% endif %}
+                                {% if cerimoniarios_list %}
+                                <div class="team-category-item">
+                                    <strong class="team-category-label">Cerimoniários:</strong>
+                                    <div class="team-category-members">
+                                        {% for nome in cerimoniarios_list %}
+                                            <span class="member-tag">{{ nome }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endif %}
+
+                            <!-- Veteranos -->
+                            {% if escala.veteranos %}
+                                {% set veteranos_list = [] %}
+                                {% if escala.veteranos is string %}
+                                    {% for nome in escala.veteranos.split(', ') if nome %}
+                                        {% set _ = veteranos_list.append(nome) %}
+                                    {% endfor %}
+                                {% else %}
+                                    {% for nome in escala.veteranos if nome %}
+                                        {% set _ = veteranos_list.append(nome) %}
+                                    {% endfor %}
+                                {% endif %}
+                                {% if veteranos_list %}
+                                <div class="team-category-item">
+                                    <strong class="team-category-label">Veteranos:</strong>
+                                    <div class="team-category-members">
+                                        {% for nome in veteranos_list %}
+                                            <span class="member-tag">{{ nome }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endif %}
+
+                            <!-- Mirins -->
+                            {% if escala.mirins %}
+                                {% set mirins_list = [] %}
+                                {% if escala.mirins is string %}
+                                    {% for nome in escala.mirins.split(', ') if nome %}
+                                        {% set _ = mirins_list.append(nome) %}
+                                    {% endfor %}
+                                {% else %}
+                                    {% for nome in escala.mirins if nome %}
+                                        {% set _ = mirins_list.append(nome) %}
+                                    {% endfor %}
+                                {% endif %}
+                                {% if mirins_list %}
+                                <div class="team-category-item">
+                                    <strong class="team-category-label">Mirins:</strong>
+                                    <div class="team-category-members">
+                                        {% for nome in mirins_list %}
+                                            <span class="member-tag">{{ nome }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endif %}
+
+                            <!-- Turíbulo -->
+                            {% if escala.turibulo %}
+                                {% set turibulo_list = [] %}
+                                {% if escala.turibulo is string %}
+                                    {% for nome in escala.turibulo.split(', ') if nome %}
+                                        {% set _ = turibulo_list.append(nome) %}
+                                    {% endfor %}
+                                {% else %}
+                                    {% for nome in escala.turibulo if nome %}
+                                        {% set _ = turibulo_list.append(nome) %}
+                                    {% endfor %}
+                                {% endif %}
+                                {% if turibulo_list %}
+                                <div class="team-category-item">
+                                    <strong class="team-category-label">Turíbulo:</strong>
+                                    <div class="team-category-members">
+                                        {% for nome in turibulo_list %}
+                                            <span class="member-tag">{{ nome }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endif %}
+
+                            <!-- Naveta -->
+                            {% if escala.naveta %}
+                                {% set naveta_list = [] %}
+                                {% if escala.naveta is string %}
+                                    {% for nome in escala.naveta.split(', ') if nome %}
+                                        {% set _ = naveta_list.append(nome) %}
+                                    {% endfor %}
+                                {% else %}
+                                    {% for nome in escala.naveta if nome %}
+                                        {% set _ = naveta_list.append(nome) %}
+                                    {% endfor %}
+                                {% endif %}
+                                {% if naveta_list %}
+                                <div class="team-category-item">
+                                    <strong class="team-category-label">Naveta:</strong>
+                                    <div class="team-category-members">
+                                        {% for nome in naveta_list %}
+                                            <span class="member-tag">{{ nome }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endif %}
+
+                            <!-- Tochas -->
+                            {% if escala.tochas %}
+                                {% set tochas_list = [] %}
+                                {% if escala.tochas is string %}
+                                    {% for nome in escala.tochas.split(', ') if nome %}
+                                        {% set _ = tochas_list.append(nome) %}
+                                    {% endfor %}
+                                {% else %}
+                                    {% for nome in escala.tochas if nome %}
+                                        {% set _ = tochas_list.append(nome) %}
+                                    {% endfor %}
+                                {% endif %}
+                                {% if tochas_list %}
+                                <div class="team-category-item">
+                                    <strong class="team-category-label">Tochas:</strong>
+                                    <div class="team-category-members">
+                                        {% for nome in tochas_list %}
+                                            <span class="member-tag">{{ nome }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Seleção de Membros por Função -->
+                        <div class="team-selection-section">
+                            <div class="form-group">
+                                <label for="cerimoniarios">Cerimoniários</label>
+                                <select name="cerimoniarios" id="cerimoniarios" multiple class="team-select">
+                                    {% for pessoa in todos_cerimoniarios %}
+                                        <option value="{{ pessoa }}" {% if escala.cerimoniarios and pessoa in escala.cerimoniarios %}selected{% endif %}>{{ pessoa }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="veteranos">Veteranos</label>
+                                <select name="veteranos" id="veteranos" multiple class="team-select">
+                                    {% for pessoa in todos_veteranos %}
+                                        <option value="{{ pessoa }}" {% if escala.veteranos and pessoa in escala.veteranos %}selected{% endif %}>{{ pessoa }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="mirins">Mirins</label>
+                                <select name="mirins" id="mirins" multiple class="team-select">
+                                    {% for pessoa in todas_mirins %}
+                                        <option value="{{ pessoa }}" {% if escala.mirins and pessoa in escala.mirins %}selected{% endif %}>{{ pessoa }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="turibulo">Turíbulo</label>
+                                <select name="turibulo" id="turibulo" multiple class="team-select">
+                                    {% for nome in candidatos_funcoes %}
+                                        <option value="{{ nome }}" {% if escala.turibulo and nome in escala.turibulo %}selected{% endif %}>{{ nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="naveta">Naveta</label>
+                                <select name="naveta" id="naveta" multiple class="team-select">
+                                    {% for nome in candidatos_funcoes %}
+                                        <option value="{{ nome }}" {% if escala.naveta and nome in escala.naveta %}selected{% endif %}>{{ nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="tochas">Tochas</label>
+                                <select name="tochas" id="tochas" multiple class="team-select">
+                                    {% for nome in candidatos_funcoes %}
+                                        <option value="{{ nome }}" {% if escala.tochas and nome in escala.tochas %}selected{% endif %}>{{ nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botões de Ação -->
+                    <div class="edit-form-actions">
+                        <button type="submit" class="btn-save">
+                            <span class="btn-icon">💾</span>
+                            Salvar Alterações
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn-cancel-form">
+                            Cancelar
+                        </a>
+                        <form action="{{ url_for('remover_escala_web', escala_id=escala.id) }}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir esta escala?');" class="btn-delete-form">
+                            <button type="submit" class="btn-delete">
+                                <span class="btn-icon">🗑️</span>
+                                Excluir
+                            </button>
+                        </form>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Dica -->
+            <div class="form-tip">
+                <strong>Dica:</strong> Certifique-se de que todos os membros da equipe estão disponíveis na data selecionada. As alterações serão salvas apenas após clicar em "Salvar Alterações".
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.team-select').select2({
+                placeholder: 'Selecionar membro...',
+                width: '100%'
+            });
+
+            // Garantir que os botões fiquem visíveis quando o teclado aparecer
+            const form = document.querySelector('.edit-form-content');
+            const actions = document.querySelector('.edit-form-actions');
+            
+            if (form && actions) {
+                // Scroll automático para os botões quando um campo é focado
+                const inputs = form.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    input.addEventListener('focus', function() {
+                        setTimeout(() => {
+                            actions.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }, 300); // Delay para o teclado aparecer
+                    });
+                });
+
+                // Prevenir scroll do body quando o teclado está aberto
+                let isKeyboardOpen = false;
+                const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                
+                window.addEventListener('resize', function() {
+                    const currentHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                    if (currentHeight < viewportHeight * 0.75) {
+                        isKeyboardOpen = true;
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        isKeyboardOpen = false;
+                        document.body.style.overflow = 'auto';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
