@@ -669,9 +669,11 @@ def index():
     params = list(date_params)
 
     if filtro_nome:
-        query += " AND (cerimoniarios LIKE ? OR veteranos LIKE ? OR mirins LIKE ? OR turibulo LIKE ? OR naveta LIKE ? OR tochas LIKE ?)"
+        # Busca parcial e case-insensitive: converte tudo para minúsculas antes de comparar
+        filtro_nome_lower = filtro_nome.lower()
+        query += " AND (LOWER(cerimoniarios) LIKE ? OR LOWER(veteranos) LIKE ? OR LOWER(mirins) LIKE ? OR LOWER(turibulo) LIKE ? OR LOWER(naveta) LIKE ? OR LOWER(tochas) LIKE ?)"
         for _ in range(6):
-            params.append(f'%{filtro_nome}%')
+            params.append(f'%{filtro_nome_lower}%')
 
     query += " ORDER BY data, tipo_escala"
     escalas = conn.execute(query, params).fetchall()
@@ -819,9 +821,11 @@ def visualizar_escala():
     query = f"SELECT * FROM escalas {date_filter}"
     params = list(date_params)
     if filtro_nome:
-        query += " AND (cerimoniarios LIKE ? OR veteranos LIKE ? OR mirins LIKE ? OR turibulo LIKE ? OR naveta LIKE ? OR tochas LIKE ?)"
+        # Busca parcial e case-insensitive: converte tudo para minúsculas antes de comparar
+        filtro_nome_lower = filtro_nome.lower()
+        query += " AND (LOWER(cerimoniarios) LIKE ? OR LOWER(veteranos) LIKE ? OR LOWER(mirins) LIKE ? OR LOWER(turibulo) LIKE ? OR LOWER(naveta) LIKE ? OR LOWER(tochas) LIKE ?)"
         for _ in range(6):
-            params.append(f'%{filtro_nome}%')
+            params.append(f'%{filtro_nome_lower}%')
     query += " ORDER BY data, tipo_escala"
 
     escalas = conn.execute(query, params).fetchall()
